@@ -1,0 +1,11 @@
+---
+all:
+  children:
+    aeims:
+      hosts:
+        aeims_web:
+          ansible_host: "{{ terraform_output_instance_ip }}"
+          ansible_user: ubuntu
+          ansible_ssh_private_key_file: ~/.ssh/aeims-key
+          domain_name: aeims.app
+          environment: prod

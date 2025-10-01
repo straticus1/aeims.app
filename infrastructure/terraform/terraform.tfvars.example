@@ -1,0 +1,61 @@
+# AEIMS Terraform Configuration Example
+# Copy this file to terraform.tfvars and customize the values
+
+# AWS Configuration
+aws_region = "us-east-1"
+environment = "prod"
+
+# Domain Configuration
+domain_name = "aeims.com"
+
+# EC2 Configuration
+instance_type = "t3.medium"
+root_volume_size = 20
+
+# SSH Configuration - REPLACE WITH YOUR PUBLIC KEY
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC... your-public-key-here"
+
+# Security Configuration - RESTRICT THESE IPs IN PRODUCTION
+admin_ips = [
+    "YOUR.IP.ADDRESS.HERE/32",  # Your office/home IP
+    "0.0.0.0/0"                 # Remove this in production
+]
+
+# VPC Configuration
+use_existing_vpc = true
+existing_vpc_name = "afterdarksys-vpc"
+
+# If creating new VPC (set use_existing_vpc = false)
+# vpc_cidr = "10.1.0.0/16"
+# public_subnet_cidr = "10.1.1.0/24"
+
+# Database Configuration
+db_password = "your-secure-database-password-here"
+
+# Monitoring and Notifications
+notification_email = "coleman.ryan@gmail.com"
+enable_monitoring = true
+
+# Backup Configuration
+enable_backup = true
+backup_retention_days = 30
+
+# Auto Scaling (optional)
+enable_auto_scaling = false
+min_capacity = 1
+max_capacity = 3
+desired_capacity = 1
+
+# Security Features (optional)
+enable_waf = false
+enable_rds = false
+enable_redis = false
+enable_load_balancer = false
+
+# Additional Tags
+tags = {
+    Project = "AEIMS"
+    Owner = "AfterDarkSystems"
+    Environment = "production"
+    CostCenter = "engineering"
+}

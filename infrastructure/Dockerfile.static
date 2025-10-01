@@ -1,0 +1,55 @@
+# AEIMS Static Dockerfile - Just nginx serving static content
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set timezone
+ENV TZ=UTC
+
+# Install nginx and basic tools
+RUN apt-get update && apt-get install -y \
+    nginx \
+    supervisor \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create application directory
+RUN mkdir -p /var/www/aeims
+
+# Copy application files
+COPY . /var/www/aeims/
+
+# Set proper ownership
+RUN chown -R www-data:www-data /var/www/aeims
+
+# Copy nginx configuration (static version)
+COPY infrastructure/docker/nginx-static.conf /etc/nginx/sites-available/default
+COPY infrastructure/docker/supervisord-static.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create log directories and ensure proper permissions
+RUN mkdir -p /var/log/nginx /var/log/supervisor \
+    && chown -R www-data:www-data /var/log/nginx
+
+# Remove default nginx site
+RUN rm -f /etc/nginx/sites-enabled/default
+
+# Set proper permissions for application
+RUN chmod -R 755 /var/www/aeims \
+    && chown -R www-data:www-data /var/www/aeims
+
+# Test nginx configuration
+RUN nginx -t
+
+# Create a simple index.html from index.php for static serving
+COPY index.php /var/www/aeims/index.html
+
+# Expose port 80
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
+# Start supervisor which will manage nginx
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

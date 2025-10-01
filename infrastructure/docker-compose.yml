@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  aeims-app:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+    container_name: aeims-app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../:/var/www/aeims:ro
+      - app_logs:/var/log/nginx
+      - php_logs:/var/log/php
+    environment:
+      - DOMAIN_NAME=aeims.app
+      - ENVIRONMENT=prod
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  mysql:
+    image: mysql:8.0
+    container_name: aeims-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: AEIMS_Secure_DB_Pass_2025!
+      MYSQL_DATABASE: aeims
+      MYSQL_USER: aeims_user
+      MYSQL_PASSWORD: AEIMS_Secure_DB_Pass_2025!
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: aeims-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
+  app_logs:
+  php_logs:
+
+networks:
+  default:
+    name: aeims-network

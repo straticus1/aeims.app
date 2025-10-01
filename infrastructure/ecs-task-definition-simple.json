@@ -1,0 +1,47 @@
+{
+  "family": "aeims-app",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::515966511618:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::515966511618:role/aeims-task-role",
+  "containerDefinitions": [
+    {
+      "name": "aeims-app",
+      "image": "515966511618.dkr.ecr.us-east-1.amazonaws.com/afterdarksys/aeims:latest",
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "DOMAIN_NAME",
+          "value": "aeims.app"
+        },
+        {
+          "name": "ENVIRONMENT",
+          "value": "prod"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/aeims-app",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost/ || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

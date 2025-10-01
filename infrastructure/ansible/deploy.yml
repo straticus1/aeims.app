@@ -1,0 +1,264 @@
+---
+# AEIMS Deployment Playbook
+# Configures Ubuntu server with PHP 8.2, Nginx, MySQL, Redis, and SSL
+- name: Deploy AEIMS Website
+  hosts: aeims_web
+  become: yes
+  vars:
+    domain_name: "{{ hostvars[inventory_hostname]['domain_name'] | default('aeims.app') }}"
+    environment: "{{ hostvars[inventory_hostname]['environment'] | default('prod') }}"
+    php_version: "8.2"
+    mysql_root_password: "{{ vault_mysql_root_password }}"
+    mysql_aeims_password: "{{ vault_mysql_aeims_password }}"
+    app_directory: "/var/www/aeims"
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install system packages
+      apt:
+        name:
+          - nginx
+          - software-properties-common
+          - curl
+          - wget
+          - unzip
+          - git
+          - htop
+          - ufw
+          - fail2ban
+          - logrotate
+          - certbot
+          - python3-certbot-nginx
+        state: present
+
+    - name: Add PHP repository
+      apt_repository:
+        repo: ppa:ondrej/php
+        state: present
+
+    - name: Install PHP and extensions
+      apt:
+        name:
+          - "php{{ php_version }}"
+          - "php{{ php_version }}-fpm"
+          - "php{{ php_version }}-mysql"
+          - "php{{ php_version }}-redis"
+          - "php{{ php_version }}-curl"
+          - "php{{ php_version }}-json"
+          - "php{{ php_version }}-mbstring"
+          - "php{{ php_version }}-xml"
+          - "php{{ php_version }}-zip"
+          - "php{{ php_version }}-gd"
+          - "php{{ php_version }}-intl"
+          - "php{{ php_version }}-bcmath"
+          - "php{{ php_version }}-soap"
+          - "php{{ php_version }}-imagick"
+        state: present
+
+    - name: Install MySQL Server
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Install Redis Server
+      apt:
+        name: redis-server
+        state: present
+
+    - name: Start and enable services
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - nginx
+        - "php{{ php_version }}-fpm"
+        - mysql
+        - redis-server
+
+    - name: Configure UFW firewall
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+      loop:
+        - "22"
+        - "80"
+        - "443"
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+
+    - name: Create application directory
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Copy AEIMS application files
+      synchronize:
+        src: "../../"
+        dest: "{{ app_directory }}/"
+        delete: yes
+        rsync_opts:
+          - "--exclude=infrastructure"
+          - "--exclude=.git"
+          - "--exclude=README.md"
+          - "--exclude=*.log"
+        owner: no
+        group: no
+      delegate_to: localhost
+
+    - name: Set proper ownership for application files
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        recurse: yes
+
+    - name: Configure PHP-FPM pool
+      template:
+        src: templates/php-pool.conf.j2
+        dest: "/etc/php/{{ php_version }}/fpm/pool.d/aeims.conf"
+        backup: yes
+      notify: restart php-fpm
+
+    - name: Configure Nginx virtual host
+      template:
+        src: templates/nginx-vhost.conf.j2
+        dest: "/etc/nginx/sites-available/{{ domain_name }}"
+        backup: yes
+      notify: restart nginx
+
+    - name: Enable Nginx site
+      file:
+        src: "/etc/nginx/sites-available/{{ domain_name }}"
+        dest: "/etc/nginx/sites-enabled/{{ domain_name }}"
+        state: link
+      notify: restart nginx
+
+    - name: Remove default Nginx site
+      file:
+        path: "/etc/nginx/sites-enabled/default"
+        state: absent
+      notify: restart nginx
+
+    - name: Configure MySQL root password
+      mysql_user:
+        name: root
+        password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: Create AEIMS database
+      mysql_db:
+        name: aeims
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Create AEIMS database user
+      mysql_user:
+        name: aeims_user
+        password: "{{ mysql_aeims_password }}"
+        priv: 'aeims.*:ALL'
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Create database tables
+      mysql_db:
+        name: aeims
+        state: import
+        target: "{{ app_directory }}/database/schema.sql"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+      ignore_errors: yes
+
+    - name: Configure Redis
+      lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: yes
+      loop:
+        - { regexp: '^bind', line: 'bind 127.0.0.1' }
+        - { regexp: '^# maxmemory', line: 'maxmemory 256mb' }
+        - { regexp: '^# maxmemory-policy', line: 'maxmemory-policy allkeys-lru' }
+      notify: restart redis
+
+    - name: Create SSL certificate with Let's Encrypt
+      command: >
+        certbot --nginx --non-interactive --agree-tos
+        --email coleman.ryan@gmail.com
+        -d {{ domain_name }}
+        -d www.{{ domain_name }}
+        -d admin.{{ domain_name }}
+        -d support.{{ domain_name }}
+        -d api.{{ domain_name }}
+      args:
+        creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+
+    - name: Setup SSL certificate auto-renewal
+      cron:
+        name: "Renew Let's Encrypt certificates"
+        minute: "0"
+        hour: "2"
+        job: "certbot renew --quiet && systemctl reload nginx"
+
+    - name: Configure log rotation for application logs
+      template:
+        src: templates/logrotate.conf.j2
+        dest: "/etc/logrotate.d/aeims"
+
+    - name: Create backup script
+      template:
+        src: templates/backup.sh.j2
+        dest: "/usr/local/bin/aeims-backup.sh"
+        mode: '0755'
+
+    - name: Setup daily backups
+      cron:
+        name: "Daily AEIMS backup"
+        minute: "0"
+        hour: "3"
+        job: "/usr/local/bin/aeims-backup.sh"
+
+    - name: Configure fail2ban for additional security
+      template:
+        src: templates/fail2ban-jail.local.j2
+        dest: "/etc/fail2ban/jail.local"
+        backup: yes
+      notify: restart fail2ban
+
+    - name: Test Nginx configuration
+      command: nginx -t
+      register: nginx_test
+      failed_when: nginx_test.rc != 0
+
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+
+    - name: restart php-fpm
+      systemd:
+        name: "php{{ php_version }}-fpm"
+        state: restarted
+
+    - name: restart redis
+      systemd:
+        name: redis-server
+        state: restarted
+
+    - name: restart fail2ban
+      systemd:
+        name: fail2ban
+        state: restarted

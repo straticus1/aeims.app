@@ -1,0 +1,628 @@
+<?php
+/**
+ * AEIMS Admin Panel
+ * Domain freeze capabilities and system management
+ */
+
+session_start();
+
+// Check admin authentication
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header('Location: login.php');
+    exit;
+}
+
+$config = require_once 'config.php';
+
+// Handle form submissions
+$message = '';
+$messageType = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action'])) {
+        switch ($_POST['action']) {
+            case 'freeze_domain':
+                $domainId = (int)$_POST['domain_id'];
+                $reason = trim($_POST['freeze_reason']);
+
+                if ($domainId && $reason) {
+                    // In production, this would update the database
+                    $message = "Domain frozen successfully. Reason: " . htmlspecialchars($reason);
+                    $messageType = 'success';
+
+                    // Log admin action
+                    error_log("Admin {$_SESSION['username']} froze domain ID $domainId: $reason");
+                } else {
+                    $message = "Domain ID and reason are required.";
+                    $messageType = 'error';
+                }
+                break;
+
+            case 'unfreeze_domain':
+                $domainId = (int)$_POST['domain_id'];
+
+                if ($domainId) {
+                    // In production, this would update the database
+                    $message = "Domain unfrozen successfully.";
+                    $messageType = 'success';
+
+                    // Log admin action
+                    error_log("Admin {$_SESSION['username']} unfroze domain ID $domainId");
+                } else {
+                    $message = "Domain ID is required.";
+                    $messageType = 'error';
+                }
+                break;
+
+            case 'update_domain_status':
+                $domainId = (int)$_POST['domain_id'];
+                $status = $_POST['status'];
+
+                $validStatuses = ['active', 'frozen', 'maintenance', 'suspended'];
+                if ($domainId && in_array($status, $validStatuses)) {
+                    $message = "Domain status updated to: " . ucfirst($status);
+                    $messageType = 'success';
+
+                    // Log admin action
+                    error_log("Admin {$_SESSION['username']} changed domain ID $domainId status to $status");
+                } else {
+                    $message = "Invalid domain ID or status.";
+                    $messageType = 'error';
+                }
+                break;
+        }
+    }
+}
+
+// Mock domain data (in production, this would come from database)
+$domains = $config['powered_sites'];
+foreach ($domains as $index => &$domain) {
+    $domain['id'] = $index + 1;
+    $domain['status'] = $domain['status'] ?? 'active';
+    $domain['last_check'] = date('Y-m-d H:i:s', strtotime('-' . rand(1, 60) . ' minutes'));
+    $domain['uptime'] = rand(95, 100) . '.' . rand(0, 9) . '%';
+}
+
+// Statistics
+$stats = [
+    'total_domains' => count($domains),
+    'active_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'active')),
+    'frozen_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'frozen')),
+    'maintenance_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'maintenance')),
+    'total_operators' => $config['stats']['cross_site_operators'],
+    'system_uptime' => $config['stats']['uptime'] . '%'
+];
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEIMS Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .header h1 {
+            color: #ef4444;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .user-info {
+            color: #a0a0a0;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ef4444;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+        }
+
+        .domains-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #ef4444;
+        }
+
+        .message {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .domains-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .domains-table th,
+        .domains-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .domains-table th {
+            background: rgba(0, 0, 0, 0.3);
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-frozen {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .status-maintenance {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .status-suspended {
+            background: rgba(156, 163, 175, 0.2);
+            color: #9ca3af;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-freeze {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-freeze:hover {
+            background: #dc2626;
+        }
+
+        .btn-unfreeze {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-unfreeze:hover {
+            background: #16a34a;
+        }
+
+        .btn-maintenance {
+            background: #fbbf24;
+            color: #1a1a1a;
+        }
+
+        .btn-maintenance:hover {
+            background: #f59e0b;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            min-width: 400px;
+        }
+
+        .modal h3 {
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e0e0e0;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e0e0e0;
+        }
+
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #4b5563;
+        }
+
+        .btn-submit {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: #dc2626;
+        }
+
+        .uptime-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .uptime-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        .uptime-dot.warning {
+            background: #fbbf24;
+        }
+
+        .uptime-dot.error {
+            background: #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .domains-table {
+                font-size: 0.9rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .modal-content {
+                min-width: 90%;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AEIMS Admin Panel</h1>
+            <p>Domain Management & System Control</p>
+            <div class="header-actions">
+                <div class="user-info">
+                    Logged in as: <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>
+                    | Last login: <?= date('M j, Y g:i A') ?>
+                </div>
+                <a href="login.php?logout=1" class="logout-btn">Logout</a>
+            </div>
+        </div>
+
+        <?php if ($message): ?>
+            <div class="message <?= $messageType ?>">
+                <?= htmlspecialchars($message) ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number"><?= $stats['total_domains'] ?></div>
+                <div class="stat-label">Total Domains</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $stats['active_domains'] ?></div>
+                <div class="stat-label">Active Domains</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $stats['frozen_domains'] ?></div>
+                <div class="stat-label">Frozen Domains</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $stats['total_operators'] ?></div>
+                <div class="stat-label">Cross-Site Operators</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $stats['system_uptime'] ?></div>
+                <div class="stat-label">System Uptime</div>
+            </div>
+        </div>
+
+        <div class="domains-section">
+            <h2 class="section-title">Domain Management</h2>
+
+            <table class="domains-table">
+                <thead>
+                    <tr>
+                        <th>Domain</th>
+                        <th>Theme</th>
+                        <th>Status</th>
+                        <th>Uptime</th>
+                        <th>Last Check</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($domains as $domain): ?>
+                        <tr>
+                            <td>
+                                <strong><?= htmlspecialchars($domain['domain']) ?></strong>
+                                <br>
+                                <small style="color: #a0a0a0;"><?= htmlspecialchars($domain['description']) ?></small>
+                            </td>
+                            <td><?= htmlspecialchars($domain['theme']) ?></td>
+                            <td>
+                                <span class="status-badge status-<?= $domain['status'] ?>">
+                                    <?= ucfirst($domain['status']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="uptime-indicator">
+                                    <span class="uptime-dot <?= floatval($domain['uptime']) < 95 ? 'error' : (floatval($domain['uptime']) < 98 ? 'warning' : '') ?>"></span>
+                                    <?= $domain['uptime'] ?>
+                                </div>
+                            </td>
+                            <td><?= $domain['last_check'] ?></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <?php if ($domain['status'] === 'active'): ?>
+                                        <button class="btn btn-freeze" onclick="openFreezeModal(<?= $domain['id'] ?>, '<?= htmlspecialchars($domain['domain']) ?>')">
+                                            Freeze
+                                        </button>
+                                        <button class="btn btn-maintenance" onclick="setDomainStatus(<?= $domain['id'] ?>, 'maintenance')">
+                                            Maintenance
+                                        </button>
+                                    <?php elseif ($domain['status'] === 'frozen'): ?>
+                                        <button class="btn btn-unfreeze" onclick="unfreezeDomain(<?= $domain['id'] ?>)">
+                                            Unfreeze
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn btn-unfreeze" onclick="setDomainStatus(<?= $domain['id'] ?>, 'active')">
+                                            Activate
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Freeze Domain Modal -->
+    <div id="freezeModal" class="modal">
+        <div class="modal-content">
+            <h3>Freeze Domain</h3>
+            <form method="POST">
+                <input type="hidden" name="action" value="freeze_domain">
+                <input type="hidden" name="domain_id" id="freezeDomainId">
+
+                <div class="form-group">
+                    <label>Domain:</label>
+                    <input type="text" id="freezeDomainName" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="freeze_reason">Reason for freezing:</label>
+                    <textarea name="freeze_reason" id="freeze_reason" required placeholder="Enter the reason for freezing this domain..."></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeFreezeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-submit">Freeze Domain</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openFreezeModal(domainId, domainName) {
+            document.getElementById('freezeDomainId').value = domainId;
+            document.getElementById('freezeDomainName').value = domainName;
+            document.getElementById('freeze_reason').value = '';
+            document.getElementById('freezeModal').style.display = 'block';
+        }
+
+        function closeFreezeModal() {
+            document.getElementById('freezeModal').style.display = 'none';
+        }
+
+        function unfreezeDomain(domainId) {
+            if (confirm('Are you sure you want to unfreeze this domain?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="action" value="unfreeze_domain">
+                    <input type="hidden" name="domain_id" value="${domainId}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function setDomainStatus(domainId, status) {
+            const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+            if (confirm(`Are you sure you want to set this domain to ${statusText} status?`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="action" value="update_domain_status">
+                    <input type="hidden" name="domain_id" value="${domainId}">
+                    <input type="hidden" name="status" value="${status}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('freezeModal');
+            if (event.target === modal) {
+                closeFreezeModal();
+            }
+        });
+
+        // Auto-refresh page every 5 minutes to update domain status
+        setTimeout(function() {
+            window.location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>
