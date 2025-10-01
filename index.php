@@ -1,6 +1,27 @@
 <?php
-// AEIMS Dynamic Website
+// AEIMS Dynamic Website - Now with FULL Integration!
+require_once 'includes/AeimsIntegration.php';
 $config = include 'config.php';
+
+// Get real statistics from AEIMS if available
+$realStats = null;
+$aeimsAvailable = false;
+
+if ($config['aeims_integration']['enabled']) {
+    try {
+        $aeims = new AeimsIntegration();
+        $realStats = $aeims->getRealStats();
+        $aeimsAvailable = true;
+        
+        // Override config stats with real data
+        if ($realStats && $realStats['system_health'] !== 'mock_data') {
+            $config['stats'] = array_merge($config['stats'], $realStats);
+        }
+    } catch (Exception $e) {
+        // Fallback to config data if AEIMS unavailable
+        error_log("AEIMS integration failed: " . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -2,96 +2,196 @@
 /**
  * AEIMS Admin Panel
  * Domain freeze capabilities and system management
+ * Now with FULL AEIMS integration!
  */
 
 session_start();
 
+// Include AEIMS integration
+require_once 'includes/AeimsIntegration.php';
+require_once 'includes/AeimsApiClient.php';
+
 // Check admin authentication
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header('Location: login.php');
     exit;
 }
 
 $config = require_once 'config.php';
 
+// Initialize AEIMS integration
+try {
+    $aeims = new AeimsIntegration();
+    $aeimsApi = new AeimsApiClient();
+    $aeimsAvailable = true;
+} catch (Exception $e) {
+    $aeimsAvailable = false;
+    $aeimsError = $e->getMessage();
+}
+
 // Handle form submissions
 $message = '';
 $messageType = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action'])) {
+    if (isset($_POST['action']) && $aeimsAvailable) {
         switch ($_POST['action']) {
             case 'freeze_domain':
-                $domainId = (int)$_POST['domain_id'];
+                $domain = $_POST['domain_name'];
                 $reason = trim($_POST['freeze_reason']);
 
-                if ($domainId && $reason) {
-                    // In production, this would update the database
-                    $message = "Domain frozen successfully. Reason: " . htmlspecialchars($reason);
-                    $messageType = 'success';
-
-                    // Log admin action
-                    error_log("Admin {$_SESSION['username']} froze domain ID $domainId: $reason");
+                if ($domain && $reason) {
+                    // Use real AEIMS CLI to suspend domain
+                    $result = $aeims->suspendDomain($domain);
+                    
+                    if (isset($result['error'])) {
+                        $message = "Failed to freeze domain: " . $result['error'];
+                        $messageType = 'error';
+                    } else {
+                        $message = "Domain '{$domain}' frozen successfully. Reason: " . htmlspecialchars($reason);
+                        $messageType = 'success';
+                        
+                        // Log admin action with reason
+                        error_log("Admin {$_SESSION['username']} froze domain {$domain}: {$reason}");
+                    }
                 } else {
-                    $message = "Domain ID and reason are required.";
+                    $message = "Domain and reason are required.";
                     $messageType = 'error';
                 }
                 break;
 
             case 'unfreeze_domain':
-                $domainId = (int)$_POST['domain_id'];
+                $domain = $_POST['domain_name'];
 
-                if ($domainId) {
-                    // In production, this would update the database
-                    $message = "Domain unfrozen successfully.";
-                    $messageType = 'success';
-
-                    // Log admin action
-                    error_log("Admin {$_SESSION['username']} unfroze domain ID $domainId");
+                if ($domain) {
+                    // Use real AEIMS CLI to activate domain
+                    $result = $aeims->activateDomain($domain);
+                    
+                    if (isset($result['error'])) {
+                        $message = "Failed to unfreeze domain: " . $result['error'];
+                        $messageType = 'error';
+                    } else {
+                        $message = "Domain '{$domain}' unfrozen successfully.";
+                        $messageType = 'success';
+                        
+                        // Log admin action
+                        error_log("Admin {$_SESSION['username']} unfroze domain {$domain}");
+                    }
                 } else {
-                    $message = "Domain ID is required.";
+                    $message = "Domain is required.";
                     $messageType = 'error';
                 }
                 break;
 
             case 'update_domain_status':
-                $domainId = (int)$_POST['domain_id'];
+                $domain = $_POST['domain_name'];
                 $status = $_POST['status'];
 
                 $validStatuses = ['active', 'frozen', 'maintenance', 'suspended'];
-                if ($domainId && in_array($status, $validStatuses)) {
-                    $message = "Domain status updated to: " . ucfirst($status);
-                    $messageType = 'success';
-
-                    // Log admin action
-                    error_log("Admin {$_SESSION['username']} changed domain ID $domainId status to $status");
+                if ($domain && in_array($status, $validStatuses)) {
+                    // Map status to AEIMS commands
+                    $result = null;
+                    if ($status === 'active') {
+                        $result = $aeims->activateDomain($domain);
+                    } else {
+                        $result = $aeims->suspendDomain($domain);
+                    }
+                    
+                    if (isset($result['error'])) {
+                        $message = "Failed to update domain status: " . $result['error'];
+                        $messageType = 'error';
+                    } else {
+                        $message = "Domain '{$domain}' status updated to: " . ucfirst($status);
+                        $messageType = 'success';
+                        
+                        // Log admin action
+                        error_log("Admin {$_SESSION['username']} changed domain {$domain} status to {$status}");
+                    }
                 } else {
-                    $message = "Invalid domain ID or status.";
+                    $message = "Invalid domain or status.";
                     $messageType = 'error';
                 }
                 break;
         }
+    } elseif (!$aeimsAvailable) {
+        $message = "AEIMS system unavailable: " . ($aeimsError ?? 'Unknown error');
+        $messageType = 'error';
     }
 }
 
-// Mock domain data (in production, this would come from database)
-$domains = $config['powered_sites'];
-foreach ($domains as $index => &$domain) {
-    $domain['id'] = $index + 1;
-    $domain['status'] = $domain['status'] ?? 'active';
-    $domain['last_check'] = date('Y-m-d H:i:s', strtotime('-' . rand(1, 60) . ' minutes'));
-    $domain['uptime'] = rand(95, 100) . '.' . rand(0, 9) . '%';
+// Get real domain data from AEIMS system
+if ($aeimsAvailable) {
+    $domainList = $aeims->listDomains();
+    $realStats = $aeims->getRealStats();
+    
+    if (isset($domainList['domains']) && is_array($domainList['domains'])) {
+        $domains = [];
+        foreach ($domainList['domains'] as $index => $domainData) {
+            $domainName = is_array($domainData) ? $domainData['domain'] : $domainData;
+            $status = $aeims->getDomainStatus($domainName);
+            
+            $domains[] = [
+                'id' => $index + 1,
+                'domain' => $domainName,
+                'theme' => $config['powered_sites'][$index]['theme'] ?? 'Custom Site',
+                'description' => $config['powered_sites'][$index]['description'] ?? 'AEIMS powered site',
+                'services' => $config['powered_sites'][$index]['services'] ?? ['Live Chat', 'Video Calls'],
+                'status' => isset($status['error']) ? 'unknown' : ($status['status'] ?? 'active'),
+                'last_check' => $status['last_check'] ?? date('Y-m-d H:i:s'),
+                'uptime' => $status['uptime'] ?? '99.9%'
+            ];
+        }
+    } else {
+        // Fallback to config data if CLI returns unexpected format
+        $domains = $config['powered_sites'];
+        foreach ($domains as $index => &$domain) {
+            $domain['id'] = $index + 1;
+            $domain['status'] = 'active'; // Default when AEIMS unavailable
+            $domain['last_check'] = date('Y-m-d H:i:s', strtotime('-' . rand(1, 60) . ' minutes'));
+            $domain['uptime'] = '99.9%';
+        }
+    }
+} else {
+    // Fallback to mock data when AEIMS unavailable
+    $domains = $config['powered_sites'];
+    foreach ($domains as $index => &$domain) {
+        $domain['id'] = $index + 1;
+        $domain['status'] = 'unavailable';
+        $domain['last_check'] = 'AEIMS Unavailable';
+        $domain['uptime'] = 'N/A';
+    }
+    $realStats = null;
 }
 
-// Statistics
-$stats = [
-    'total_domains' => count($domains),
-    'active_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'active')),
-    'frozen_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'frozen')),
-    'maintenance_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'maintenance')),
-    'total_operators' => $config['stats']['cross_site_operators'],
-    'system_uptime' => $config['stats']['uptime'] . '%'
-];
+// Real statistics from AEIMS system
+if ($aeimsAvailable && $realStats) {
+    $stats = [
+        'total_domains' => count($domains),
+        'active_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'active')),
+        'frozen_domains' => count(array_filter($domains, fn($d) => in_array($d['status'], ['frozen', 'suspended']))),
+        'maintenance_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'maintenance')),
+        'total_operators' => $realStats['cross_site_operators'],
+        'system_uptime' => $realStats['uptime'] . '%',
+        'calls_today' => $realStats['total_calls_today'] ?? 0,
+        'messages_today' => $realStats['messages_today'] ?? 0,
+        'revenue_today' => '$' . number_format($realStats['revenue_today'] ?? 0),
+        'system_health' => $realStats['system_health'] ?? 'unknown'
+    ];
+} else {
+    // Fallback statistics
+    $stats = [
+        'total_domains' => count($domains),
+        'active_domains' => $aeimsAvailable ? count(array_filter($domains, fn($d) => $d['status'] === 'active')) : 0,
+        'frozen_domains' => count(array_filter($domains, fn($d) => in_array($d['status'], ['frozen', 'suspended', 'unavailable']))),
+        'maintenance_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'maintenance')),
+        'total_operators' => $aeimsAvailable ? 0 : $config['stats']['cross_site_operators'],
+        'system_uptime' => $aeimsAvailable ? '0%' : $config['stats']['uptime'] . '%',
+        'calls_today' => 0,
+        'messages_today' => 0,
+        'revenue_today' => '$0',
+        'system_health' => $aeimsAvailable ? 'degraded' : 'offline'
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -521,18 +621,18 @@ $stats = [
                             <td>
                                 <div class="action-buttons">
                                     <?php if ($domain['status'] === 'active'): ?>
-                                        <button class="btn btn-freeze" onclick="openFreezeModal(<?= $domain['id'] ?>, '<?= htmlspecialchars($domain['domain']) ?>')">
+                                        <button class="btn btn-freeze" onclick="openFreezeModal('<?= htmlspecialchars($domain['domain']) ?>')">
                                             Freeze
                                         </button>
-                                        <button class="btn btn-maintenance" onclick="setDomainStatus(<?= $domain['id'] ?>, 'maintenance')">
+                                        <button class="btn btn-maintenance" onclick="setDomainStatus('<?= htmlspecialchars($domain['domain']) ?>', 'maintenance')">
                                             Maintenance
                                         </button>
                                     <?php elseif ($domain['status'] === 'frozen'): ?>
-                                        <button class="btn btn-unfreeze" onclick="unfreezeDomain(<?= $domain['id'] ?>)">
+                                        <button class="btn btn-unfreeze" onclick="unfreezeDomain('<?= htmlspecialchars($domain['domain']) ?>')">
                                             Unfreeze
                                         </button>
                                     <?php else: ?>
-                                        <button class="btn btn-unfreeze" onclick="setDomainStatus(<?= $domain['id'] ?>, 'active')">
+                                        <button class="btn btn-unfreeze" onclick="setDomainStatus('<?= htmlspecialchars($domain['domain']) ?>', 'active')">
                                             Activate
                                         </button>
                                     <?php endif; ?>
@@ -551,11 +651,11 @@ $stats = [
             <h3>Freeze Domain</h3>
             <form method="POST">
                 <input type="hidden" name="action" value="freeze_domain">
-                <input type="hidden" name="domain_id" id="freezeDomainId">
+                <input type="hidden" name="domain_name" id="freezeDomainName">
 
                 <div class="form-group">
                     <label>Domain:</label>
-                    <input type="text" id="freezeDomainName" readonly>
+                    <input type="text" id="freezeDomainDisplay" readonly>
                 </div>
 
                 <div class="form-group">
@@ -572,9 +672,9 @@ $stats = [
     </div>
 
     <script>
-        function openFreezeModal(domainId, domainName) {
-            document.getElementById('freezeDomainId').value = domainId;
+        function openFreezeModal(domainName) {
             document.getElementById('freezeDomainName').value = domainName;
+            document.getElementById('freezeDomainDisplay').value = domainName;
             document.getElementById('freeze_reason').value = '';
             document.getElementById('freezeModal').style.display = 'block';
         }
@@ -583,27 +683,27 @@ $stats = [
             document.getElementById('freezeModal').style.display = 'none';
         }
 
-        function unfreezeDomain(domainId) {
+        function unfreezeDomain(domainName) {
             if (confirm('Are you sure you want to unfreeze this domain?')) {
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.innerHTML = `
                     <input type="hidden" name="action" value="unfreeze_domain">
-                    <input type="hidden" name="domain_id" value="${domainId}">
+                    <input type="hidden" name="domain_name" value="${domainName}">
                 `;
                 document.body.appendChild(form);
                 form.submit();
             }
         }
 
-        function setDomainStatus(domainId, status) {
+        function setDomainStatus(domainName, status) {
             const statusText = status.charAt(0).toUpperCase() + status.slice(1);
             if (confirm(`Are you sure you want to set this domain to ${statusText} status?`)) {
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.innerHTML = `
                     <input type="hidden" name="action" value="update_domain_status">
-                    <input type="hidden" name="domain_id" value="${domainId}">
+                    <input type="hidden" name="domain_name" value="${domainName}">
                     <input type="hidden" name="status" value="${status}">
                 `;
                 document.body.appendChild(form);

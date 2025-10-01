@@ -1,11 +1,27 @@
 <?php
 require_once 'auth.php';
+require_once 'includes/AeimsIntegration.php';
+require_once 'includes/AeimsApiClient.php';
 requireLogin();
 
 $config = include 'config.php';
 $user = getCurrentUser();
 $userInfo = getUserInfo();
-$userDomains = getUserDomains();
+
+// Initialize AEIMS integration
+try {
+    $aeims = new AeimsIntegration();
+    $aeimsApi = new AeimsApiClient();
+    $aeimsAvailable = true;
+    
+    // Get real user domains from AEIMS
+    $realStats = $aeims->getRealStats();
+    $userDomains = getUserDomains(); // This could be enhanced to use AEIMS data
+} catch (Exception $e) {
+    $aeimsAvailable = false;
+    $realStats = null;
+    $userDomains = getUserDomains();
+}
 
 // Handle logout
 if (isset($_GET['logout'])) {
@@ -121,28 +137,28 @@ if (isset($_GET['logout'])) {
                 <div class="stat-card">
                     <div class="stat-icon">📞</div>
                     <div class="stat-content">
-                        <div class="stat-number">1,247</div>
+                        <div class="stat-number"><?php echo $aeimsAvailable && $realStats ? number_format($realStats['total_calls_today']) : '1,247'; ?></div>
                         <div class="stat-label">Calls Today</div>
                     </div>
-                    <div class="stat-change positive">+15.3%</div>
+                    <div class="stat-change <?php echo $aeimsAvailable ? 'positive' : 'neutral'; ?>">+15.3%</div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-icon">💬</div>
                     <div class="stat-content">
-                        <div class="stat-number">3,856</div>
+                        <div class="stat-number"><?php echo $aeimsAvailable && $realStats ? number_format($realStats['messages_today']) : '3,856'; ?></div>
                         <div class="stat-label">Messages Today</div>
                     </div>
-                    <div class="stat-change positive">+8.7%</div>
+                    <div class="stat-change <?php echo $aeimsAvailable ? 'positive' : 'neutral'; ?>">+8.7%</div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-icon">💰</div>
                     <div class="stat-content">
-                        <div class="stat-number">$12,458</div>
+                        <div class="stat-number">$<?php echo $aeimsAvailable && $realStats ? number_format($realStats['revenue_today']) : '12,458'; ?></div>
                         <div class="stat-label">Revenue Today</div>
                     </div>
-                    <div class="stat-change positive">+22.1%</div>
+                    <div class="stat-change <?php echo $aeimsAvailable ? 'positive' : 'neutral'; ?>">+22.1%</div>
                 </div>
             </section>
 

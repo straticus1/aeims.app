@@ -93,13 +93,22 @@ return [
         ]
     ],
 
-    // Platform statistics
+    // Platform statistics (will be overridden by real AEIMS data when available)
     'stats' => [
         'sites_powered' => 10,
         'uptime' => 99.9,
         'support_hours' => 24,
         'cross_site_operators' => 85,
         'discrete_transactions' => 'all'
+    ],
+    
+    // AEIMS Integration Settings
+    'aeims_integration' => [
+        'enabled' => true,
+        'cli_path' => '../aeims/cli/aeims',
+        'api_url' => 'http://localhost:3000/api',
+        'fallback_to_mock' => true, // Use mock data when AEIMS unavailable
+        'cache_timeout' => 300 // Cache AEIMS data for 5 minutes
     ],
 
     // Key platform features
