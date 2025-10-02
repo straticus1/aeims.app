@@ -497,12 +497,12 @@ if ($config['aeims_integration']['enabled']) {
                     </ul>
                 </div>
                 <div class="footer-links">
-                    <h4>Technology</h4>
+                    <h4>Legal & Compliance</h4>
                     <ul>
-                        <li><a href="#">API Documentation</a></li>
-                        <li><a href="#">Integration Guide</a></li>
-                        <li><a href="#">System Status</a></li>
-                        <li><a href="#">Security</a></li>
+                        <li><a href="legal.php">Legal Framework</a></li>
+                        <li><a href="legal.php#federal-compliance">Federal Compliance</a></li>
+                        <li><a href="legal.php#privacy-data">Privacy Policy</a></li>
+                        <li><a href="legal.php#reporting">Report Violations</a></li>
                     </ul>
                 </div>
             </div>

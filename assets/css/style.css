@@ -1131,3 +1131,214 @@ html {
     background: var(--primary-color);
     color: white;
 }
+
+/* Legal Page Styles */
+.legal-main {
+    padding: 100px 0 60px;
+    min-height: calc(100vh - 140px);
+}
+
+.legal-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.legal-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+}
+
+.legal-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.last-updated {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.legal-nav {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    border: 1px solid var(--border);
+}
+
+.legal-toc {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    list-style: none;
+}
+
+.legal-toc li a {
+    display: block;
+    padding: 0.75rem 1rem;
+    background: var(--background-secondary);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.legal-toc li a:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.legal-section {
+    margin-bottom: 4rem;
+}
+
+.legal-section h2 {
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.compliance-item {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.compliance-item h3 {
+    background: var(--background-secondary);
+    padding: 1.5rem;
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+}
+
+.compliance-content {
+    padding: 1.5rem;
+}
+
+.compliance-content p {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.compliance-content ul {
+    list-style: none;
+    margin: 1rem 0;
+}
+
+.compliance-content li {
+    padding: 0.5rem 0;
+    color: var(--text-secondary);
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.compliance-content li::before {
+    content: "•";
+    color: var(--primary-color);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+.compliance-status {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.compliance-status.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.legal-footer {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 3rem;
+    border: 1px solid var(--border);
+    text-align: center;
+}
+
+.legal-footer p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.legal-footer p:last-child {
+    margin-bottom: 0;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Legal Page Navigation Active State */
+.nav-menu a.active {
+    color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+}
+
+/* Legal Page Contact Links */
+.compliance-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.compliance-content a:hover {
+    text-decoration: underline;
+}
+
+.compliance-content address {
+    background: var(--background-secondary);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-style: normal;
+    line-height: 1.6;
+}
+
+/* Legal Page Responsive */
+@media (max-width: 768px) {
+    .legal-header h1 {
+        font-size: 2.2rem;
+    }
+
+    .legal-nav {
+        padding: 1.5rem;
+    }
+
+    .legal-toc {
+        grid-template-columns: 1fr;
+    }
+
+    .compliance-item h3 {
+        font-size: 1.1rem;
+        padding: 1rem;
+    }
+
+    .compliance-content {
+        padding: 1rem;
+    }
+}

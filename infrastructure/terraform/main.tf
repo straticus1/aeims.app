@@ -1,20 +1,6 @@
 # AEIMS Infrastructure - AWS Terraform Configuration
 # Creates EC2 instance, security groups, Route53 hosted zone, and SSL certificate
 
-terraform {
-  required_version = ">= 1.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.aws_region
-}
-
 # Data sources
 data "aws_availability_zones" "available" {
   state = "available"
@@ -266,20 +252,14 @@ resource "aws_eip" "aeims_web" {
   depends_on = [aws_internet_gateway.aeims_igw]
 }
 
-# Route53 Hosted Zone for aeims.app
-resource "aws_route53_zone" "aeims" {
+# Use existing Route53 zone (created by dns-only.tf)
+data "aws_route53_zone" "aeims" {
   name = var.domain_name
-
-  tags = {
-    Name        = "aeims-hosted-zone"
-    Environment = var.environment
-    Project     = "AEIMS"
-  }
 }
 
 # Route53 A Record for main domain
 resource "aws_route53_record" "aeims_main" {
-  zone_id = aws_route53_zone.aeims.zone_id
+  zone_id = data.aws_route53_zone.aeims.zone_id
   name    = var.domain_name
   type    = "A"
   ttl     = 300
@@ -288,7 +268,7 @@ resource "aws_route53_record" "aeims_main" {
 
 # Route53 A Record for www subdomain
 resource "aws_route53_record" "aeims_www" {
-  zone_id = aws_route53_zone.aeims.zone_id
+  zone_id = data.aws_route53_zone.aeims.zone_id
   name    = "www.${var.domain_name}"
   type    = "A"
   ttl     = 300
@@ -297,7 +277,7 @@ resource "aws_route53_record" "aeims_www" {
 
 # Route53 A Record for admin subdomain
 resource "aws_route53_record" "aeims_admin" {
-  zone_id = aws_route53_zone.aeims.zone_id
+  zone_id = data.aws_route53_zone.aeims.zone_id
   name    = "admin.${var.domain_name}"
   type    = "A"
   ttl     = 300
@@ -306,7 +286,7 @@ resource "aws_route53_record" "aeims_admin" {
 
 # Route53 A Record for support subdomain
 resource "aws_route53_record" "aeims_support" {
-  zone_id = aws_route53_zone.aeims.zone_id
+  zone_id = data.aws_route53_zone.aeims.zone_id
   name    = "support.${var.domain_name}"
   type    = "A"
   ttl     = 300
@@ -315,7 +295,7 @@ resource "aws_route53_record" "aeims_support" {
 
 # Route53 A Record for api subdomain
 resource "aws_route53_record" "aeims_api" {
-  zone_id = aws_route53_zone.aeims.zone_id
+  zone_id = data.aws_route53_zone.aeims.zone_id
   name    = "api.${var.domain_name}"
   type    = "A"
   ttl     = 300
