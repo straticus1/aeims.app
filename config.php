@@ -6,7 +6,7 @@
 return [
     // Contact form settings
     'contact' => [
-        'recipient_email' => 'coleman.ryan@gmail.com',
+        'recipient_email' => 'rjc@afterdarksys.com',
         'subject_prefix' => '[AEIMS License Inquiry]',
         'from_email' => 'noreply@aeims.app',
         'from_name' => 'AEIMS Contact Form',
@@ -25,7 +25,7 @@ return [
         'name' => 'AEIMS',
         'full_name' => 'Adult Entertainment Information Management System',
         'company' => 'After Dark Systems',
-        'contact_email' => 'coleman.ryan@gmail.com',
+        'contact_email' => 'rjc@afterdarksys.com',
         'response_time' => '24 hours'
     ],
 

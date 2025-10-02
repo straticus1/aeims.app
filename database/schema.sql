@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS email_templates (
 
 -- Insert default admin user
 INSERT INTO users (username, email, password_hash, role, first_name, last_name, status, email_verified)
-VALUES ('admin', 'coleman.ryan@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Admin', 'User', 'active', TRUE)
+VALUES ('admin', 'rjc@afterdarksys.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Admin', 'User', 'active', TRUE)
 ON DUPLICATE KEY UPDATE username=username;
 
 -- Insert sample domains from config

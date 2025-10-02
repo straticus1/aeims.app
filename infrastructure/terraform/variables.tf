@@ -93,7 +93,7 @@ variable "db_password" {
 variable "notification_email" {
   description = "Email for system notifications"
   type        = string
-  default     = "coleman.ryan@gmail.com"
+  default     = "rjc@afterdarksys.com"
 }
 
 variable "enable_auto_scaling" {

@@ -356,7 +356,7 @@ terraform apply
 ## Support
 
 For technical support or questions about AEIMS licensing:
-- **Email**: coleman.ryan@gmail.com
+- **Email**: rjc@afterdarksys.com
 - **Response Time**: Within 24 hours
 
 ---

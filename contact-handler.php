@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Configuration
 $config = [
-    'recipient_email' => 'coleman.ryan@gmail.com',
+    'recipient_email' => 'rjc@afterdarksys.com',
     'subject_prefix' => '[AEIMS License Inquiry]',
     'from_email' => 'noreply@aeims.app',
     'from_name' => 'AEIMS Contact Form',

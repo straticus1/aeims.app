@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $config = [
     'support_email' => 'support@aeims.app',
     'emergency_email' => 'emergency@aeims.app',
-    'admin_email' => 'coleman.ryan@gmail.com',
+    'admin_email' => 'rjc@afterdarksys.com',
     'subject_prefix' => '[AEIMS Support]',
     'emergency_prefix' => '[AEIMS EMERGENCY]',
     'from_email' => 'noreply@aeims.app',

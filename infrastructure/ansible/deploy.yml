@@ -196,7 +196,7 @@
     - name: Create SSL certificate with Let's Encrypt
       command: >
         certbot --nginx --non-interactive --agree-tos
-        --email coleman.ryan@gmail.com
+        --email rjc@afterdarksys.com
         -d {{ domain_name }}
         -d www.{{ domain_name }}
         -d admin.{{ domain_name }}

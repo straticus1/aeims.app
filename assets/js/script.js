@@ -363,4 +363,4 @@ document.addEventListener('mousemove', function(e) {
 // Console branding
 console.log('%c🚀 AEIMS - Adult Entertainment Information Management System', 'color: #6366f1; font-size: 16px; font-weight: bold;');
 console.log('%cPowered by After Dark Systems', 'color: #a1a1aa; font-size: 12px;');
-console.log('%cInterested in licensing? Contact: coleman.ryan@gmail.com', 'color: #10b981; font-size: 12px;');
+console.log('%cInterested in licensing? Contact: rjc@afterdarksys.com', 'color: #10b981; font-size: 12px;');
