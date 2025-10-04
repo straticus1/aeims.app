@@ -10,8 +10,8 @@ class AeimsIntegration {
     private $cliPath;
     
     public function __construct() {
-        $this->aeimsPath = dirname(__DIR__) . '/aeims';
-        $this->aeimsLibPath = dirname(__DIR__) . '/aeimsLib';
+        $this->aeimsPath = dirname(dirname(__DIR__)) . '/aeims';
+        $this->aeimsLibPath = dirname(dirname(__DIR__)) . '/aeimsLib';
         $this->cliPath = $this->aeimsPath . '/cli/aeims';
         
         // Note: We don't throw an exception here anymore to allow graceful fallback

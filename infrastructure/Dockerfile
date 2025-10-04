@@ -38,17 +38,30 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-# Create application directory
-RUN mkdir -p /var/www/aeims
+# Create application directory and backend component directories (outside web root)
+RUN mkdir -p /var/www/aeims /opt/aeims-backend/aeims /opt/aeims-backend/aeimsLib /opt/aeims-backend/aeims-control
 
-# Copy application files
+# Copy web application files from aeims.app
 COPY . /var/www/aeims/
+
+# Copy the AEIMS core system from parent directory
+# Note: These are handled by the backend services in production
+# COPY ../aeims/services/ /var/www/aeims/services/
+# COPY ../aeims/sites/ /var/www/aeims/sites/
+
+# Backend components will be connected via network - no need to copy them into this container
 
 # Set proper ownership
 RUN chown -R www-data:www-data /var/www/aeims
 
-# Copy minimal working nginx configuration
-COPY infrastructure/docker/nginx-minimal.conf /etc/nginx/sites-available/default
+# Backend components are accessed via network - update integration to use HTTP endpoints
+RUN if [ -f /var/www/aeims/includes/AeimsIntegration.php ]; then \
+    sed -i 's|dirname(__DIR__) . \x27/aeims\x27|"http://aeims-core:8000"|g' /var/www/aeims/includes/AeimsIntegration.php && \
+    sed -i 's|dirname(__DIR__) . \x27/aeimsLib\x27|"http://aeims-lib:8080"|g' /var/www/aeims/includes/AeimsIntegration.php; \
+    fi
+
+# Copy multi-site nginx configuration
+COPY infrastructure/docker/nginx.conf /etc/nginx/sites-available/default
 
 # Remove default PHP-FPM pool and copy our configuration
 RUN rm -f /etc/php/8.2/fpm/pool.d/www.conf

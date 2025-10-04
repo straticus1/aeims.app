@@ -1,5 +1,12 @@
 <?php
 // AEIMS Dynamic Website - Now with FULL Integration!
+
+// Redirect admin.aeims.app to login page
+if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] === 'admin.aeims.app') {
+    header('Location: https://admin.aeims.app/login.php');
+    exit();
+}
+
 require_once 'includes/AeimsIntegration.php';
 $config = include 'config.php';
 
@@ -40,6 +47,20 @@ if ($config['aeims_integration']['enabled']) {
         <div class="spinner"></div>
     </div>
 
+    <!-- Age Verification / Cookie Consent Banner -->
+    <div id="age-verification-banner" class="age-verification-banner">
+        <div class="banner-content">
+            <div class="banner-text">
+                <strong>Age Verification & Cookie Notice</strong><br>
+                By using NiteText.com, AEIMS.app, and afterdarksys.com you agree to the After Dark Systems or AEIMS.app User Agreement and understand that we use cookies and may share your information with third party providers, such as analytic partners. We will never sell your information to third parties. You must be 18 or older to continue.
+            </div>
+            <div class="banner-actions">
+                <button id="accept-terms" class="btn btn-primary">I am 18+ and Accept</button>
+                <button id="decline-terms" class="btn btn-outline">I am under 18</button>
+            </div>
+        </div>
+    </div>
+
     <header class="header">
         <nav class="nav">
             <div class="nav-brand">
@@ -51,6 +72,7 @@ if ($config['aeims_integration']['enabled']) {
                 <li><a href="#powered-by">Powered By</a></li>
                 <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li><a href="login.php" class="nav-login">Login</a></li>
             </ul>
             <div class="nav-toggle">
                 <span></span>
@@ -494,6 +516,9 @@ if ($config['aeims_integration']['enabled']) {
                         <li><a href="#powered-by">Sites</a></li>
                         <li><a href="#pricing">Pricing</a></li>
                         <li><a href="#contact">Contact</a></li>
+                        <li><a href="login.php">Login</a></li>
+                        <li><a href="become-operator.php">Become an Operator</a></li>
+                        <li><a href="customer-age-verification.php">Age Verification</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
@@ -514,5 +539,174 @@ if ($config['aeims_integration']['enabled']) {
     </footer>
 
     <script src="assets/js/script.js"></script>
+
+    <!-- Age Verification Banner Styles -->
+    <style>
+        .age-verification-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+            color: white;
+            z-index: 10000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .age-verification-banner.hidden {
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease-in-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .banner-content {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 2rem;
+        }
+
+        .banner-text {
+            flex: 1;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .banner-text strong {
+            color: #fbbf24;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            display: inline;
+        }
+
+        .banner-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .banner-actions .btn {
+            padding: 0.625rem 1.25rem;
+            font-weight: 600;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .banner-actions .btn-primary {
+            background: #059669;
+            color: white;
+        }
+
+        .banner-actions .btn-primary:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        .banner-actions .btn-outline {
+            background: transparent;
+            color: #fbbf24;
+            border: 2px solid #fbbf24;
+        }
+
+        .banner-actions .btn-outline:hover {
+            background: #fbbf24;
+            color: #1e40af;
+        }
+
+        @media (max-width: 768px) {
+            .banner-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+                padding: 1.25rem;
+            }
+
+            .banner-text {
+                font-size: 0.8rem;
+            }
+
+            .banner-actions {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .banner-actions .btn {
+                width: 100%;
+            }
+        }
+
+        /* Ensure page content isn't hidden behind the banner */
+        body.banner-visible {
+            padding-bottom: 120px;
+        }
+
+        @media (max-width: 768px) {
+            body.banner-visible {
+                padding-bottom: 180px;
+            }
+        }
+    </style>
+
+    <!-- Age Verification Banner JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const banner = document.getElementById('age-verification-banner');
+            const acceptBtn = document.getElementById('accept-terms');
+            const declineBtn = document.getElementById('decline-terms');
+
+            // Check if user has already accepted terms
+            if (localStorage.getItem('aeims_age_verified') === 'true') {
+                banner.classList.add('hidden');
+                document.body.classList.remove('banner-visible');
+            } else {
+                document.body.classList.add('banner-visible');
+            }
+
+            // Handle accept button
+            acceptBtn.addEventListener('click', function() {
+                localStorage.setItem('aeims_age_verified', 'true');
+                localStorage.setItem('aeims_terms_accepted_date', new Date().toISOString());
+                banner.classList.add('hidden');
+                document.body.classList.remove('banner-visible');
+
+                // Optional: Send analytics event
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'age_verification_accepted', {
+                        'event_category': 'compliance',
+                        'event_label': 'age_verification'
+                    });
+                }
+            });
+
+            // Handle decline button
+            declineBtn.addEventListener('click', function() {
+                // Redirect to a "you must be 18+" page or external site
+                alert('You must be 18 or older to access this website. You will now be redirected to Google.');
+                window.location.href = 'https://www.google.com';
+            });
+        });
+    </script>
 </body>
 </html>

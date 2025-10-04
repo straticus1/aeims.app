@@ -2,6 +2,14 @@
 // AEIMS Support Page
 $config = include 'config.php';
 
+// Handle messages from form submissions
+$message = '';
+$messageType = '';
+if (isset($_GET['message'])) {
+    $message = urldecode($_GET['message']);
+    $messageType = $_GET['type'] ?? 'info';
+}
+
 // Add support-specific configuration
 $support_config = [
     'support_hours' => '24/7/365',
@@ -61,6 +69,14 @@ $support_config = [
     </header>
 
     <main>
+        <?php if ($message): ?>
+            <div class="container">
+                <div class="alert alert-<?= $messageType ?>" style="margin: 20px 0; padding: 15px; border-radius: 5px; <?= $messageType === 'success' ? 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;' : 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;' ?>">
+                    <?= htmlspecialchars($message) ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <section class="support-hero">
             <div class="container">
                 <div class="hero-content">
@@ -184,7 +200,7 @@ $support_config = [
             <div class="container">
                 <h2 class="section-title">Submit Support Ticket</h2>
                 <div class="form-container">
-                    <form class="ticket-form" id="supportTicketForm">
+                    <form class="ticket-form" id="supportTicketForm" action="tickets.php" method="POST">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="ticket-name">Name *</label>
@@ -246,6 +262,7 @@ $support_config = [
                             <textarea id="ticket-environment" name="environment" rows="3" placeholder="Browser, operating system, AEIMS version, etc."></textarea>
                         </div>
 
+                        <input type="hidden" name="action" value="submit_ticket">
                         <button type="submit" class="btn btn-primary">Submit Ticket</button>
                     </form>
                 </div>
@@ -260,7 +277,7 @@ $support_config = [
                     <p>For urgent issues, you can also call: <?php echo $support_config['support_channels']['emergency']; ?></p>
                 </div>
                 <div class="form-container">
-                    <form class="emergency-form" id="emergencyForm">
+                    <form class="emergency-form" id="emergencyForm" action="tickets.php" method="POST">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="emergency-name">Name *</label>
@@ -305,6 +322,7 @@ $support_config = [
                             <textarea id="emergency-impact" name="impact" rows="3" required placeholder="Describe how this is affecting your operations and customers"></textarea>
                         </div>
 
+                        <input type="hidden" name="action" value="submit_emergency">
                         <button type="submit" class="btn btn-accent">Submit Emergency Request</button>
                     </form>
                 </div>

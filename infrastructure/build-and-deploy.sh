@@ -73,7 +73,7 @@ push_to_ecr() {
 
 # Update ECS task definition
 update_task_definition() {
-    print_info "Updating ECS task definition..."
+    print_info "Updating ECS task definition..." >&2
 
     # Update the task definition with new image
     TASK_DEFINITION=$(cat infrastructure/ecs-task-definition.json | \
@@ -87,7 +87,7 @@ update_task_definition() {
         --query 'taskDefinition.taskDefinitionArn' \
         --output text)
 
-    print_success "New task definition registered: $NEW_TASK_DEFINITION"
+    print_success "New task definition registered: $NEW_TASK_DEFINITION" >&2
     echo "$NEW_TASK_DEFINITION"
 }
 

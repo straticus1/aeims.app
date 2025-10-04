@@ -1,5 +1,5 @@
 <?php
-require_once 'auth.php';
+require_once 'auth_functions.php';
 require_once 'includes/AeimsIntegration.php';
 require_once 'includes/AeimsApiClient.php';
 requireLogin();
@@ -37,67 +37,82 @@ if (isset($_GET['logout'])) {
     <meta name="description" content="AEIMS customer dashboard. Manage your domains, view statistics, and access support tools.">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/multi-site.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="dashboard-body">
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="dashboard-sidebar">
-            <div class="sidebar-header">
-                <a href="index.php" class="logo-link">
-                    <h1 class="sidebar-logo"><?php echo $config['site']['name']; ?></h1>
-                    <span class="sidebar-subtitle">Customer Portal</span>
-                </a>
-            </div>
+    <!-- Top Navigation -->
+    <header class="top-nav">
+        <div class="nav-brand">
+            <a href="index.php" class="logo-link">
+                <h1 class="nav-logo"><?php echo $config['site']['name']; ?></h1>
+                <span class="nav-subtitle">Customer Portal</span>
+            </a>
+        </div>
 
-            <nav class="sidebar-nav">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="dashboard.php" class="nav-link active">
-                            <span class="nav-icon">📊</span>
-                            <span class="nav-text">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="setup.php" class="nav-link">
-                            <span class="nav-icon">⚙️</span>
-                            <span class="nav-text">Initial Setup</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="domains.php" class="nav-link">
-                            <span class="nav-icon">🌐</span>
-                            <span class="nav-text">Domain Management</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="analytics.php" class="nav-link">
-                            <span class="nav-icon">📈</span>
-                            <span class="nav-text">Analytics & Stats</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="tickets.php" class="nav-link">
-                            <span class="nav-icon">🎫</span>
-                            <span class="nav-text">Support Tickets</span>
-                        </a>
-                    </li>
-                    <?php if (isAdmin()): ?>
-                    <li class="nav-divider"></li>
-                    <li class="nav-item">
-                        <a href="admin-dashboard.php" class="nav-link admin-link">
-                            <span class="nav-icon">👑</span>
-                            <span class="nav-text">Admin Panel</span>
-                        </a>
-                    </li>
-                    <?php endif; ?>
-                </ul>
-            </nav>
+        <nav class="main-nav">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="dashboard.php" class="nav-link active">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
 
-            <div class="sidebar-footer">
-                <div class="user-info">
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle">
+                        <span class="nav-icon">⚙️</span>
+                        <span class="nav-text">Configuration</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="setup.php">Initial Setup</a></li>
+                        <li><a href="domains.php">Domain Management</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-text">Analytics</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="analytics.php">View Analytics</a></li>
+                        <li><a href="reports.php">Reports</a></li>
+                        <li><a href="exports.php">Data Export</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle">
+                        <span class="nav-icon">🎫</span>
+                        <span class="nav-text">Support</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="ticket-manager.php">Support Tickets</a></li>
+                        <li><a href="support.php">Contact Support</a></li>
+                        <li><a href="support.php#knowledge-base">Knowledge Base</a></li>
+                    </ul>
+                </li>
+
+                <?php if (isAdmin()): ?>
+                <li class="nav-item">
+                    <a href="admin-dashboard.php" class="nav-link admin-link">
+                        <span class="nav-icon">👑</span>
+                        <span class="nav-text">Admin Panel</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+
+        <div class="user-menu">
+            <div class="user-dropdown">
+                <button class="user-btn">
                     <div class="user-avatar">
                         <?php echo strtoupper(substr($userInfo['name'], 0, 2)); ?>
                     </div>
@@ -105,11 +120,20 @@ if (isset($_GET['logout'])) {
                         <div class="user-name"><?php echo htmlspecialchars($userInfo['name']); ?></div>
                         <div class="user-type"><?php echo ucfirst($userInfo['type']); ?></div>
                     </div>
-                </div>
-                <a href="?logout=1" class="logout-btn" title="Logout">🚪</a>
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <ul class="user-dropdown-menu">
+                    <li><a href="profile.php">Profile Settings</a></li>
+                    <li><a href="security.php">Security</a></li>
+                    <li><a href="auth.php">🔐 Authentication Status</a></li>
+                    <li class="divider"></li>
+                    <li><a href="?logout=1">Logout</a></li>
+                </ul>
             </div>
-        </aside>
+        </div>
+    </header>
 
+    <div class="dashboard-container">
         <!-- Main Content -->
         <main class="dashboard-main">
             <header class="dashboard-header">
@@ -118,8 +142,10 @@ if (isset($_GET['logout'])) {
                     <p>Manage your AEIMS platform from your centralized dashboard</p>
                 </div>
                 <div class="header-actions">
+                    <a href="operator-profile.php" class="btn btn-secondary">👤 Profile</a>
                     <button class="btn btn-secondary" onclick="showQuickHelp()">Quick Help</button>
                     <a href="support.php" class="btn btn-primary">Get Support</a>
+                    <a href="?logout=1" class="btn btn-outline" style="color: #ef4444; border-color: #ef4444;">Logout</a>
                 </div>
             </header>
 
@@ -250,7 +276,7 @@ if (isset($_GET['logout'])) {
                                 <span class="action-icon">📊</span>
                                 <span class="action-text">View Analytics</span>
                             </a>
-                            <a href="tickets.php?action=create" class="quick-action">
+                            <a href="support.php#ticket-form" class="quick-action">
                                 <span class="action-icon">🎫</span>
                                 <span class="action-text">Open Support Ticket</span>
                             </a>
@@ -297,7 +323,7 @@ if (isset($_GET['logout'])) {
                 <section class="dashboard-card">
                     <div class="card-header">
                         <h3>Support Tickets</h3>
-                        <a href="tickets.php" class="card-action">View All</a>
+                        <a href="ticket-manager.php" class="card-action">View All</a>
                     </div>
                     <div class="card-content">
                         <div class="ticket-summary">
@@ -314,7 +340,7 @@ if (isset($_GET['logout'])) {
                                 <div class="ticket-label">Resolved This Month</div>
                             </div>
                         </div>
-                        <a href="tickets.php?action=create" class="btn btn-outline btn-sm">Create New Ticket</a>
+                        <a href="support.php#ticket-form" class="btn btn-outline btn-sm">Create New Ticket</a>
                     </div>
                 </section>
 
@@ -376,6 +402,119 @@ if (isset($_GET['logout'])) {
         </div>
     </div>
 
+    <!-- Cross-Site Settings Modal -->
+    <div id="crossSiteModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cross-Site Account Settings</h3>
+                <button class="modal-close" onclick="hideCrossSiteSettings()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="cross-site-info">
+                    <p>Manage your cross-site login and account linking preferences.</p>
+
+                    <div class="setting-group">
+                        <h4>Cross-Site Login</h4>
+                        <p>Enable this to use the same login credentials across all authorized sites.</p>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="crossSiteEnabled"
+                                   <?php echo userHasCrossSiteEnabled($user['username'] ?? '') ? 'checked' : ''; ?>>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Cross-site login enabled</span>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Authorized Sites</h4>
+                        <div class="authorized-sites-list">
+                            <?php foreach ($authorizedSites as $site): ?>
+                            <div class="authorized-site">
+                                <span class="site-domain"><?php echo htmlspecialchars($site['domain']); ?></span>
+                                <span class="site-status active">✅ Active</span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Username Reservation</h4>
+                        <p>Your username "<?php echo htmlspecialchars($user['username'] ?? 'N/A'); ?>" is automatically reserved across all sites in the network.</p>
+                        <?php if (isUsernameReserved($user['username'] ?? '')): ?>
+                        <div class="reservation-status success">
+                            ✅ Username reserved across <?php echo count(getUsernameReservationDetails($user['username'] ?? '')['reserved_sites'] ?? []); ?> sites
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-primary" onclick="saveCrossSiteSettings()">Save Settings</button>
+                    <button class="btn btn-secondary" onclick="hideCrossSiteSettings()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="assets/js/dashboard.js"></script>
+    <script>
+    function showCrossSiteSettings() {
+        document.getElementById('crossSiteModal').classList.remove('hidden');
+    }
+
+    function hideCrossSiteSettings() {
+        document.getElementById('crossSiteModal').classList.add('hidden');
+    }
+
+    function saveCrossSiteSettings() {
+        const crossSiteEnabled = document.getElementById('crossSiteEnabled').checked;
+
+        // Send AJAX request to update settings
+        fetch('api/update-cross-site-settings.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                cross_site_enabled: crossSiteEnabled
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                hideCrossSiteSettings();
+                // Show success message
+                showNotification('Cross-site settings updated successfully', 'success');
+            } else {
+                showNotification('Failed to update settings: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Network error: ' + error.message, 'error');
+        });
+    }
+
+    function showNotification(message, type) {
+        // Simple notification system
+        const notification = document.createElement('div');
+        notification.className = 'notification ' + type;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            z-index: 10000;
+            background-color: ${type === 'success' ? '#10b981' : '#ef4444'};
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+    </script>
 </body>
 </html>

@@ -11,6 +11,9 @@ session_start();
 require_once 'includes/AeimsIntegration.php';
 require_once 'includes/AeimsApiClient.php';
 
+// Include SiteManager for customer site management
+require_once dirname(dirname(__DIR__)) . '/aeims/services/SiteManager.php';
+
 // Check admin authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header('Location: login.php');
@@ -27,6 +30,15 @@ try {
 } catch (Exception $e) {
     $aeimsAvailable = false;
     $aeimsError = $e->getMessage();
+}
+
+// Initialize SiteManager for customer site management
+try {
+    $siteManager = new \AEIMS\Services\SiteManager();
+    $siteManagerAvailable = true;
+} catch (Exception $e) {
+    $siteManagerAvailable = false;
+    $siteManagerError = $e->getMessage();
 }
 
 // Handle form submissions
@@ -112,6 +124,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $messageType = 'error';
                 }
                 break;
+
+            case 'create_site':
+                if ($siteManagerAvailable) {
+                    $domain = trim($_POST['site_domain']);
+                    $name = trim($_POST['site_name']);
+                    $description = trim($_POST['site_description']);
+                    $template = $_POST['site_template'] ?? 'default';
+
+                    if ($domain && $name && $description) {
+                        try {
+                            $site = $siteManager->createSite([
+                                'domain' => $domain,
+                                'name' => $name,
+                                'description' => $description,
+                                'template' => $template
+                            ]);
+
+                            $message = "Customer site '{$domain}' created successfully!";
+                            $messageType = 'success';
+
+                            // Log admin action
+                            error_log("Admin {$_SESSION['username']} created site {$domain}");
+                        } catch (Exception $e) {
+                            $message = "Failed to create site: " . $e->getMessage();
+                            $messageType = 'error';
+                        }
+                    } else {
+                        $message = "Domain, name, and description are required.";
+                        $messageType = 'error';
+                    }
+                } else {
+                    $message = "Site management unavailable: " . ($siteManagerError ?? 'Unknown error');
+                    $messageType = 'error';
+                }
+                break;
         }
     } elseif (!$aeimsAvailable) {
         $message = "AEIMS system unavailable: " . ($aeimsError ?? 'Unknown error');
@@ -163,6 +210,16 @@ if ($aeimsAvailable) {
     $realStats = null;
 }
 
+// Get customer sites data
+$customerSites = [];
+if ($siteManagerAvailable) {
+    try {
+        $customerSites = $siteManager->getAllSites();
+    } catch (Exception $e) {
+        error_log("Failed to load customer sites: " . $e->getMessage());
+    }
+}
+
 // Real statistics from AEIMS system
 if ($aeimsAvailable && $realStats) {
     $stats = [
@@ -171,6 +228,7 @@ if ($aeimsAvailable && $realStats) {
         'frozen_domains' => count(array_filter($domains, fn($d) => in_array($d['status'], ['frozen', 'suspended']))),
         'maintenance_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'maintenance')),
         'total_operators' => $realStats['cross_site_operators'],
+        'customer_sites' => count($customerSites),
         'system_uptime' => $realStats['uptime'] . '%',
         'calls_today' => $realStats['total_calls_today'] ?? 0,
         'messages_today' => $realStats['messages_today'] ?? 0,
@@ -185,6 +243,7 @@ if ($aeimsAvailable && $realStats) {
         'frozen_domains' => count(array_filter($domains, fn($d) => in_array($d['status'], ['frozen', 'suspended', 'unavailable']))),
         'maintenance_domains' => count(array_filter($domains, fn($d) => $d['status'] === 'maintenance')),
         'total_operators' => $aeimsAvailable ? 0 : $config['stats']['cross_site_operators'],
+        'customer_sites' => count($customerSites),
         'system_uptime' => $aeimsAvailable ? '0%' : $config['stats']['uptime'] . '%',
         'calls_today' => 0,
         'messages_today' => 0,
@@ -578,6 +637,10 @@ if ($aeimsAvailable && $realStats) {
                 <div class="stat-label">Cross-Site Operators</div>
             </div>
             <div class="stat-card">
+                <div class="stat-number"><?= $stats['customer_sites'] ?></div>
+                <div class="stat-label">Customer Sites</div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-number"><?= $stats['system_uptime'] ?></div>
                 <div class="stat-label">System Uptime</div>
             </div>
@@ -642,6 +705,119 @@ if ($aeimsAvailable && $realStats) {
                     <?php endforeach; ?>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Customer Sites Management Section -->
+        <div class="domains-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="section-title">Customer Sites Management</h2>
+                <button class="btn btn-unfreeze" onclick="openCreateSiteModal()">Add New Site</button>
+            </div>
+
+            <?php if ($siteManagerAvailable): ?>
+                <table class="domains-table">
+                    <thead>
+                        <tr>
+                            <th>Domain</th>
+                            <th>Name</th>
+                            <th>Template</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Stats</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($customerSites)): ?>
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #a0a0a0; padding: 40px;">
+                                    No customer sites created yet. Click "Add New Site" to create your first site.
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($customerSites as $site): ?>
+                                <tr>
+                                    <td>
+                                        <strong><?= htmlspecialchars($site['domain']) ?></strong>
+                                        <br>
+                                        <small style="color: #a0a0a0;"><?= htmlspecialchars($site['description']) ?></small>
+                                    </td>
+                                    <td><?= htmlspecialchars($site['name']) ?></td>
+                                    <td><?= htmlspecialchars($site['template']) ?></td>
+                                    <td>
+                                        <span class="status-badge status-<?= $site['active'] ? 'active' : 'frozen' ?>">
+                                            <?= $site['active'] ? 'Active' : 'Inactive' ?>
+                                        </span>
+                                    </td>
+                                    <td><?= date('M j, Y', strtotime($site['created_at'])) ?></td>
+                                    <td>
+                                        <small style="color: #a0a0a0;">
+                                            <?= $site['stats']['total_customers'] ?> customers<br>
+                                            <?= $site['stats']['active_operators'] ?> operators
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-maintenance" onclick="window.open('http://<?= htmlspecialchars($site['domain']) ?>', '_blank')">
+                                                View Site
+                                            </button>
+                                            <button class="btn btn-freeze" onclick="editSite('<?= htmlspecialchars($site['site_id']) ?>')">
+                                                Configure
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <div style="text-align: center; color: #ef4444; padding: 40px; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px;">
+                    <h3>Site Manager Unavailable</h3>
+                    <p><?= htmlspecialchars($siteManagerError ?? 'Unknown error occurred') ?></p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Create Site Modal -->
+    <div id="createSiteModal" class="modal">
+        <div class="modal-content">
+            <h3>Create New Customer Site</h3>
+            <form method="POST">
+                <input type="hidden" name="action" value="create_site">
+
+                <div class="form-group">
+                    <label for="site_domain">Domain:</label>
+                    <input type="text" name="site_domain" id="site_domain" required placeholder="flirts.nyc">
+                    <small style="color: #a0a0a0;">Enter the domain name without http:// or https://</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="site_name">Site Name:</label>
+                    <input type="text" name="site_name" id="site_name" required placeholder="Flirts NYC">
+                </div>
+
+                <div class="form-group">
+                    <label for="site_description">Description:</label>
+                    <textarea name="site_description" id="site_description" required placeholder="Premium adult entertainment platform for New York"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="site_template">Template:</label>
+                    <select name="site_template" id="site_template">
+                        <option value="default">Default Template</option>
+                        <option value="premium">Premium Template</option>
+                        <option value="elite">Elite Template</option>
+                        <option value="custom">Custom Template</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeCreateSiteModal()">Cancel</button>
+                    <button type="submit" class="btn btn-submit">Create Site</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -711,11 +887,33 @@ if ($aeimsAvailable && $realStats) {
             }
         }
 
+        // Customer Site Management Functions
+        function openCreateSiteModal() {
+            document.getElementById('site_domain').value = '';
+            document.getElementById('site_name').value = '';
+            document.getElementById('site_description').value = '';
+            document.getElementById('site_template').value = 'default';
+            document.getElementById('createSiteModal').style.display = 'block';
+        }
+
+        function closeCreateSiteModal() {
+            document.getElementById('createSiteModal').style.display = 'none';
+        }
+
+        function editSite(siteId) {
+            // For now, just show an alert. Later this can be expanded to open an edit modal
+            alert('Site configuration panel coming soon! Site ID: ' + siteId);
+        }
+
         // Close modal when clicking outside
         window.addEventListener('click', function(event) {
-            const modal = document.getElementById('freezeModal');
-            if (event.target === modal) {
+            const freezeModal = document.getElementById('freezeModal');
+            const createSiteModal = document.getElementById('createSiteModal');
+
+            if (event.target === freezeModal) {
                 closeFreezeModal();
+            } else if (event.target === createSiteModal) {
+                closeCreateSiteModal();
             }
         });
 

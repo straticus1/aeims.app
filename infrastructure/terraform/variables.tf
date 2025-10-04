@@ -53,6 +53,8 @@ variable "existing_vpc_name" {
   default     = "afterdarksys-vpc"
 }
 
+# Note: EIP variables removed as ALBs manage their own public IPs
+
 variable "vpc_cidr" {
   description = "CIDR block for VPC (if creating new)"
   type        = string

@@ -70,6 +70,11 @@ infrastructure/terraform/.terraform/
 infrastructure/terraform/*.tfvars
 infrastructure/terraform/.terraform.lock.hcl
 
+# All Terraform provider directories (large binary files)
+terraform/.terraform/
+*/.terraform/
+**/.terraform/
+
 # Docker build context exclusions
 .dockerignore
 

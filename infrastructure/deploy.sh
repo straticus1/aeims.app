@@ -15,8 +15,8 @@ NC='\033[0m' # No Color
 DOMAIN_NAME="aeims.app"
 AWS_REGION="us-east-1"
 ENVIRONMENT="prod"
-TERRAFORM_DIR="terraform"
-ANSIBLE_DIR="ansible"
+TERRAFORM_DIR="infrastructure/terraform"
+ANSIBLE_DIR="infrastructure/ansible"
 SKIP_TERRAFORM=false
 SKIP_ANSIBLE=false
 

@@ -1,0 +1,112 @@
+# AEIMS Complete Application Dockerfile
+# Includes all required backend dependencies for full functionality
+
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set timezone
+ENV TZ=UTC
+
+# Install system packages
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    ca-certificates \
+    lsb-release \
+    apt-transport-https \
+    curl \
+    wget \
+    unzip \
+    git \
+    && add-apt-repository ppa:ondrej/php \
+    && apt-get update \
+    && apt-get install -y \
+    nginx \
+    php8.2 \
+    php8.2-fpm \
+    php8.2-mysql \
+    php8.2-redis \
+    php8.2-curl \
+    php8.2-mbstring \
+    php8.2-xml \
+    php8.2-zip \
+    php8.2-gd \
+    php8.2-intl \
+    php8.2-bcmath \
+    redis-server \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create application directory and backend component directories (outside web root for security)
+RUN mkdir -p /var/www/aeims /opt/aeims-backend/aeims /opt/aeims-backend/aeimsLib /opt/aeims-backend/aeims-control
+
+# Copy web application files
+COPY aeims.app/ /var/www/aeims/
+
+# Copy backend components outside web root for security
+COPY aeims/cli /opt/aeims-backend/aeims/cli/
+COPY aeims/src /opt/aeims-backend/aeims/src/
+COPY aeims/config /opt/aeims-backend/aeims/config/
+COPY aeims/composer.json /opt/aeims-backend/aeims/
+COPY aeims/config.example.php /opt/aeims-backend/aeims/
+
+# Copy essential aeimsLib files
+COPY aeimsLib/src /opt/aeims-backend/aeimsLib/src/
+COPY aeimsLib/protocols /opt/aeims-backend/aeimsLib/protocols/
+COPY aeimsLib/config.php /opt/aeims-backend/aeimsLib/
+COPY aeimsLib/package.json /opt/aeims-backend/aeimsLib/
+COPY aeimsLib/device_manager.php /opt/aeims-backend/aeimsLib/
+COPY aeimsLib/api.php /opt/aeims-backend/aeimsLib/
+
+# Copy aeims-control essentials
+COPY aeims-control/scripts /opt/aeims-backend/aeims-control/scripts/
+COPY aeims-control/templates /opt/aeims-backend/aeims-control/templates/
+COPY aeims-control/.env.example /opt/aeims-backend/aeims-control/
+
+# Set proper ownership
+RUN chown -R www-data:www-data /var/www/aeims /opt/aeims-backend
+
+# Update PHP integration to point to correct paths
+RUN sed -i "s|dirname(__DIR__) . '/aeims'|\"/opt/aeims-backend/aeims\"|g" /var/www/aeims/includes/AeimsIntegration.php && \
+    sed -i "s|dirname(__DIR__) . '/aeimsLib'|\"/opt/aeims-backend/aeimsLib\"|g" /var/www/aeims/includes/AeimsIntegration.php
+
+# Copy minimal working nginx configuration (with our fix)
+COPY aeims.app/infrastructure/docker/nginx-minimal.conf /etc/nginx/sites-available/default
+
+# Remove default PHP-FPM pool and copy our configuration
+RUN rm -f /etc/php/8.2/fpm/pool.d/www.conf
+COPY aeims.app/infrastructure/docker/php-fpm.conf /etc/php/8.2/fpm/pool.d/www.conf
+
+# Copy supervisor configuration
+COPY aeims.app/infrastructure/docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create log directories and ensure proper permissions
+RUN mkdir -p /var/log/nginx /var/log/php /var/log/supervisor /var/run/php \
+    && chown -R www-data:www-data /var/log/nginx \
+    && chown -R www-data:www-data /var/log/php \
+    && chown -R www-data:www-data /var/run/php
+
+# Remove default nginx site and enable our site
+RUN rm -f /etc/nginx/sites-enabled/default
+RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# Set proper permissions for application
+RUN chmod -R 755 /var/www/aeims \
+    && chown -R www-data:www-data /var/www/aeims
+
+# Make CLI executable
+RUN chmod +x /opt/aeims-backend/aeims/cli/aeims 2>/dev/null || true
+
+# Test nginx configuration
+RUN nginx -t
+
+# Expose port 80
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
+# Start supervisor which will manage nginx, php-fpm, and redis
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

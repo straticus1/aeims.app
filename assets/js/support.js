@@ -21,14 +21,13 @@ function initSupportForms() {
 
 // Handle ticket form submission
 function handleTicketSubmission(e) {
-    e.preventDefault();
-
     const form = e.target;
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
 
     // Validate form
     if (!validateTicketForm(data)) {
+        e.preventDefault();
         return;
     }
 
@@ -38,49 +37,22 @@ function handleTicketSubmission(e) {
     submitButton.textContent = 'Submitting...';
     submitButton.disabled = true;
 
-    // Submit ticket
-    fetch('support-handler.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            ...data,
-            type: 'ticket'
-        })
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            showSupportNotification(
-                `Ticket submitted successfully! Ticket #${result.ticket_id}. Expected response time: ${getResponseTime(data.priority)}.`,
-                'success'
-            );
-            form.reset();
-        } else {
-            showSupportNotification(result.message || 'An error occurred. Please try again.', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Ticket submission error:', error);
-        showSupportNotification('Network error. Please check your connection and try again.', 'error');
-    })
-    .finally(() => {
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
-    });
+    // Save user data for future forms
+    saveUserData(data);
+
+    // Let the form submit normally (since we have action="tickets.php")
+    // The page will redirect with success/error messages
 }
 
 // Handle emergency form submission
 function handleEmergencySubmission(e) {
-    e.preventDefault();
-
     const form = e.target;
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
 
     // Validate form
     if (!validateEmergencyForm(data)) {
+        e.preventDefault();
         return;
     }
 
@@ -90,37 +62,11 @@ function handleEmergencySubmission(e) {
     submitButton.textContent = 'Submitting Emergency Request...';
     submitButton.disabled = true;
 
-    // Submit emergency request
-    fetch('support-handler.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            ...data,
-            type: 'emergency'
-        })
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            showSupportNotification(
-                `Emergency request submitted! Ticket #${result.ticket_id}. Our emergency team has been notified and will contact you within 1 hour.`,
-                'success'
-            );
-            form.reset();
-        } else {
-            showSupportNotification(result.message || 'An error occurred. Please try again.', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Emergency submission error:', error);
-        showSupportNotification('Network error. Please check your connection and try again.', 'error');
-    })
-    .finally(() => {
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
-    });
+    // Save user data for future forms
+    saveUserData(data);
+
+    // Let the form submit normally (since we have action="tickets.php")
+    // The page will redirect with success/error messages
 }
 
 // Validate ticket form

@@ -104,7 +104,7 @@ return [
     
     // AEIMS Integration Settings
     'aeims_integration' => [
-        'enabled' => true,
+        'enabled' => false,
         'cli_path' => '../aeims/cli/aeims',
         'api_url' => 'http://localhost:3000/api',
         'fallback_to_mock' => true, // Use mock data when AEIMS unavailable

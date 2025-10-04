@@ -1,0 +1,92 @@
+{
+    "test_operator_1759572812": {
+        "original_site": "test.com",
+        "reserved_at": "2025-10-04T10:13:32+00:00",
+        "reserved_sites": [
+            "beastybitches.com",
+            "cavern.love",
+            "nitetext.com",
+            "nineinchesof.com",
+            "holyflirts.com",
+            "nycflirts.com",
+            "gfecalls.com",
+            "latenite.love",
+            "fantasyflirts.live",
+            "dommecats.com"
+        ],
+        "user_id": "68e0f34c10e32",
+        "email": "test@example.com"
+    },
+    "test_operator_1759572829": {
+        "original_site": "test.com",
+        "reserved_at": "2025-10-04T10:13:49+00:00",
+        "reserved_sites": [
+            "beastybitches.com",
+            "cavern.love",
+            "nitetext.com",
+            "nineinchesof.com",
+            "holyflirts.com",
+            "nycflirts.com",
+            "gfecalls.com",
+            "latenite.love",
+            "fantasyflirts.live",
+            "dommecats.com"
+        ],
+        "user_id": "68e0f35d5894a",
+        "email": "test@example.com"
+    },
+    "test_operator_1759573742": {
+        "original_site": "test.com",
+        "reserved_at": "2025-10-04T10:29:02+00:00",
+        "reserved_sites": [
+            "beastybitches.com",
+            "cavern.love",
+            "nitetext.com",
+            "nineinchesof.com",
+            "holyflirts.com",
+            "nycflirts.com",
+            "gfecalls.com",
+            "latenite.love",
+            "fantasyflirts.live",
+            "dommecats.com"
+        ],
+        "user_id": "68e0f6ee9fe51",
+        "email": "test@example.com"
+    },
+    "test_operator_1759573822": {
+        "original_site": "test.com",
+        "reserved_at": "2025-10-04T10:30:22+00:00",
+        "reserved_sites": [
+            "beastybitches.com",
+            "cavern.love",
+            "nitetext.com",
+            "nineinchesof.com",
+            "holyflirts.com",
+            "nycflirts.com",
+            "gfecalls.com",
+            "latenite.love",
+            "fantasyflirts.live",
+            "dommecats.com"
+        ],
+        "user_id": "68e0f73e478c5",
+        "email": "test@example.com"
+    },
+    "test_operator_1759573839": {
+        "original_site": "test.com",
+        "reserved_at": "2025-10-04T10:30:39+00:00",
+        "reserved_sites": [
+            "beastybitches.com",
+            "cavern.love",
+            "nitetext.com",
+            "nineinchesof.com",
+            "holyflirts.com",
+            "nycflirts.com",
+            "gfecalls.com",
+            "latenite.love",
+            "fantasyflirts.live",
+            "dommecats.com"
+        ],
+        "user_id": "68e0f74f3a5ce",
+        "email": "test@example.com"
+    }
+}
