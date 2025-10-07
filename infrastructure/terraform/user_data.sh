@@ -26,7 +26,7 @@ apt-get install -y \
     nginx \
     php8.2 \
     php8.2-fpm \
-    php8.2-mysql \
+    php8.2-pgsql \
     php8.2-redis \
     php8.2-curl \
     php8.2-json \
@@ -34,7 +34,7 @@ apt-get install -y \
     php8.2-xml \
     php8.2-zip \
     php8.2-gd \
-    mysql-server \
+    postgresql-client \
     redis-server \
     git \
     curl \
@@ -56,13 +56,13 @@ chown -R www-data:www-data /var/www/aeims
 echo "Starting services..."
 systemctl start nginx
 systemctl start php8.2-fpm
-systemctl start mysql
 systemctl start redis-server
 
 systemctl enable nginx
 systemctl enable php8.2-fpm
-systemctl enable mysql
 systemctl enable redis-server
+
+# Note: PostgreSQL server runs on AEIMS Core, not locally
 
 # Configure firewall
 echo "Configuring firewall..."

@@ -16,6 +16,11 @@ services:
     environment:
       - DOMAIN_NAME=aeims.app
       - ENVIRONMENT=prod
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=aeims_core
+      - DB_USER=aeims_user
+      - DB_PASS=secure_password_123
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
@@ -24,20 +29,6 @@ services:
       retries: 3
       start_period: 40s
 
-  mysql:
-    image: mysql:8.0
-    container_name: aeims-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: AEIMS_Secure_DB_Pass_2025!
-      MYSQL_DATABASE: aeims
-      MYSQL_USER: aeims_user
-      MYSQL_PASSWORD: AEIMS_Secure_DB_Pass_2025!
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-    ports:
-      - "3306:3306"
-    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -50,7 +41,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  mysql_data:
   redis_data:
   app_logs:
   php_logs:

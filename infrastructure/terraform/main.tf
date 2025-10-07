@@ -903,6 +903,30 @@ resource "aws_ecs_task_definition" "aeims_app" {
         {
           name  = "DOMAIN_NAME"
           value = var.domain_name
+        },
+        {
+          name  = "DB_HOST"
+          value = var.postgres_host
+        },
+        {
+          name  = "DB_PORT"
+          value = var.postgres_port
+        },
+        {
+          name  = "DB_NAME"
+          value = var.postgres_database
+        },
+        {
+          name  = "DB_USER"
+          value = var.postgres_username
+        },
+        {
+          name  = "DB_PASS"
+          value = var.postgres_password
+        },
+        {
+          name  = "ENVIRONMENT"
+          value = var.environment
         }
       ]
     }

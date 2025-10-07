@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# API Routes - handle all /api/admin/* requests
+RewriteRule ^api/admin/sites(/.*)?$ api/admin/sites.php [L,QSA]
+
+# Health check endpoint
+RewriteRule ^health$ health.php [L]
+
+# Default routing for other files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L,QSA]

@@ -277,8 +277,8 @@ print_status "Created nginx-multi-site.conf"
 cat > aeims-multi-site.service << 'EOF'
 [Unit]
 Description=AEIMS Multi-Site Platform
-After=network.target mysql.service nginx.service
-Requires=mysql.service
+After=network.target nginx.service
+Requires=nginx.service
 
 [Service]
 Type=forking

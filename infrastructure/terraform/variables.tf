@@ -85,11 +85,35 @@ variable "ssl_certificate_arn" {
   default     = ""
 }
 
-variable "db_password" {
-  description = "Database password for MySQL/MariaDB"
+variable "postgres_host" {
+  description = "PostgreSQL host (AEIMS Core database)"
+  type        = string
+  default     = "localhost"
+}
+
+variable "postgres_port" {
+  description = "PostgreSQL port"
+  type        = string
+  default     = "5432"
+}
+
+variable "postgres_database" {
+  description = "PostgreSQL database name"
+  type        = string
+  default     = "aeims_core"
+}
+
+variable "postgres_username" {
+  description = "PostgreSQL username"
+  type        = string
+  default     = "aeims_user"
+}
+
+variable "postgres_password" {
+  description = "PostgreSQL password for AEIMS Core database"
   type        = string
   sensitive   = true
-  default     = ""
+  default     = "secure_password_123"
 }
 
 variable "notification_email" {
@@ -156,29 +180,17 @@ variable "rate_limit_requests_per_5min" {
   default     = 2000
 }
 
-# Database variables
-variable "enable_rds" {
-  description = "Enable RDS MySQL instance"
+# Database variables - PostgreSQL integration with AEIMS Core
+variable "enable_postgres_integration" {
+  description = "Enable PostgreSQL integration with AEIMS Core"
   type        = bool
-  default     = false
+  default     = true
 }
 
-variable "db_instance_class" {
-  description = "RDS instance class"
-  type        = string
-  default     = "db.t3.micro"
-}
-
-variable "db_allocated_storage" {
-  description = "RDS allocated storage in GB"
+variable "postgres_connection_pool_size" {
+  description = "PostgreSQL connection pool size"
   type        = number
   default     = 20
-}
-
-variable "db_engine_version" {
-  description = "MySQL engine version"
-  type        = string
-  default     = "8.0"
 }
 
 # Redis variables
