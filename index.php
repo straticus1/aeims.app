@@ -1,6 +1,25 @@
 <?php
 // AEIMS Dynamic Website - Now with FULL Integration!
 
+// Virtual Host Routing (quick fix)
+$host = $_SERVER['HTTP_HOST'] ?? '';
+switch (true) {
+    case ($host === 'sexacomms.com' || $host === 'www.sexacomms.com' || $host === 'login.sexacomms.com'):
+        // Admin interface
+        require_once 'sites/sexacomms/index.php';
+        exit();
+
+    case ($host === 'flirts.nyc' || $host === 'www.flirts.nyc'):
+        // Customer site
+        require_once '../aeims/sites/flirts.nyc/index.php';
+        exit();
+
+    case ($host === 'nycflirts.com' || $host === 'www.nycflirts.com'):
+        // Customer site
+        require_once '../aeims/sites/nycflirts.com/index.php';
+        exit();
+}
+
 // Redirect admin.aeims.app to login page
 if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] === 'admin.aeims.app') {
     header('Location: https://admin.aeims.app/login.php');

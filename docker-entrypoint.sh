@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Generate Apache virtual host with runtime environment variables
+# Generate Apache virtual host with runtime environment variables (simplified)
 cat > /etc/apache2/sites-available/000-default.conf << EOF
 <VirtualHost *:80>
     DocumentRoot /var/www/aeims

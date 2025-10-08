@@ -253,15 +253,15 @@ data "aws_route53_zone" "aeims" {
   zone_id = "Z10072032GZWNZRSG9VVW"  # The Terraform managed aeims.app hosted zone
 }
 
-# Route53 A Records for ALB
+# Route53 A Records for Production ALB
 resource "aws_route53_record" "aeims_main" {
   zone_id = data.aws_route53_zone.aeims.zone_id
   name    = var.domain_name
   type    = "A"
 
   alias {
-    name                   = aws_lb.aeims_alb.dns_name
-    zone_id                = aws_lb.aeims_alb.zone_id
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
     evaluate_target_health = true
   }
 }
@@ -272,8 +272,8 @@ resource "aws_route53_record" "aeims_www" {
   type    = "A"
 
   alias {
-    name                   = aws_lb.aeims_alb.dns_name
-    zone_id                = aws_lb.aeims_alb.zone_id
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
     evaluate_target_health = true
   }
 }
@@ -284,8 +284,8 @@ resource "aws_route53_record" "aeims_admin" {
   type    = "A"
 
   alias {
-    name                   = aws_lb.aeims_alb.dns_name
-    zone_id                = aws_lb.aeims_alb.zone_id
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
     evaluate_target_health = true
   }
 }
@@ -296,8 +296,8 @@ resource "aws_route53_record" "aeims_support" {
   type    = "A"
 
   alias {
-    name                   = aws_lb.aeims_alb.dns_name
-    zone_id                = aws_lb.aeims_alb.zone_id
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
     evaluate_target_health = true
   }
 }
@@ -308,8 +308,8 @@ resource "aws_route53_record" "aeims_api" {
   type    = "A"
 
   alias {
-    name                   = aws_lb.aeims_alb.dns_name
-    zone_id                = aws_lb.aeims_alb.zone_id
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
     evaluate_target_health = true
   }
 }
@@ -548,6 +548,48 @@ resource "aws_security_group" "aeims_alb" {
   }
 }
 
+# Security Group for Production ALB
+resource "aws_security_group" "aeims_alb_production" {
+  name_prefix = "aeims-alb-"
+  vpc_id      = local.vpc_id
+
+  description = "Security group for Application Load Balancer"
+
+  # HTTP
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP"
+  }
+
+  # HTTPS
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS"
+  }
+
+  # All outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "All outbound traffic"
+  }
+
+  tags = {
+    Name        = "aeims-alb-sg-production"
+    Environment = "production"
+    Project     = "telephony-platform"
+    ManagedBy   = "terraform"
+  }
+}
+
 # Get public subnets for ALB (requires at least 2 AZs)
 data "aws_subnets" "alb_subnets" {
   filter {
@@ -574,6 +616,23 @@ resource "aws_lb" "aeims_alb" {
     Name        = "aeims-alb"
     Environment = var.environment
     Project     = "AEIMS"
+  }
+}
+
+# Production Application Load Balancer
+resource "aws_lb" "aeims_alb_production" {
+  name               = "aeims-alb-production"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.aeims_alb_production.id]
+  subnets            = data.aws_subnets.alb_subnets.ids
+
+  enable_deletion_protection = false
+
+  tags = {
+    Name        = "aeims-alb-production"
+    Environment = "production"
+    ManagedBy   = "terraform"
   }
 }
 
@@ -630,28 +689,55 @@ resource "aws_lb_target_group" "aeims_ecs" {
   }
 }
 
-# Listener rule to route traffic to ECS target group
-resource "aws_lb_listener_rule" "aeims_ecs" {
-  listener_arn = aws_lb_listener.aeims_https.arn
-  priority     = 100
+# Production ECS Target Group
+resource "aws_lb_target_group" "aeims_ecs_production" {
+  name        = "aeims-ecs-tg-production"
+  port        = 80
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = local.vpc_id
 
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.aeims_ecs.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["*"]
-    }
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    interval            = 30
+    matcher             = "200"
+    path                = "/"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
+    unhealthy_threshold = 3
   }
 
   tags = {
-    Name        = "aeims-ecs-rule"
-    Environment = var.environment
-    Project     = "AEIMS"
+    Name        = "aeims-ecs-tg-production"
+    Environment = "production"
+    ManagedBy   = "terraform"
   }
 }
+
+# Listener rule to route traffic to ECS target group (old non-production - commented out)
+# resource "aws_lb_listener_rule" "aeims_ecs" {
+#   listener_arn = aws_lb_listener.aeims_https.arn
+#   priority     = 100
+#
+#   action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.aeims_ecs.arn
+#   }
+#
+#   condition {
+#     path_pattern {
+#       values = ["*"]
+#     }
+#   }
+#
+#   tags = {
+#     Name        = "aeims-ecs-rule"
+#     Environment = var.environment
+#     Project     = "AEIMS"
+#   }
+# }
 
 # Target Group Attachment - Removed for ECS service
 # resource "aws_lb_target_group_attachment" "aeims_web" {
@@ -762,15 +848,15 @@ resource "aws_acm_certificate_validation" "flirts_nyc" {
   validation_record_fqdns = [for record in aws_route53_record.flirts_nyc_cert_validation : record.fqdn]
 }
 
-# Route53 A record for flirts.nyc pointing to ALB
+# Route53 A record for flirts.nyc pointing to production ALB
 resource "aws_route53_record" "flirts_nyc" {
   zone_id = aws_route53_zone.flirts_nyc.zone_id
   name    = "flirts.nyc"
   type    = "A"
 
   alias {
-    name                   = aws_lb.aeims_alb.dns_name
-    zone_id                = aws_lb.aeims_alb.zone_id
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
     evaluate_target_health = true
   }
 }
@@ -782,21 +868,21 @@ resource "aws_route53_record" "flirts_nyc_www" {
   type    = "A"
 
   alias {
-    name                   = aws_lb.aeims_alb.dns_name
-    zone_id                = aws_lb.aeims_alb.zone_id
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
     evaluate_target_health = true
   }
 }
 
-# Route53 A record for nycflirts.com pointing to ALB
+# Route53 A record for nycflirts.com pointing to production ALB
 resource "aws_route53_record" "nycflirts_com" {
   zone_id = aws_route53_zone.nycflirts_com.zone_id
   name    = "nycflirts.com"
   type    = "A"
 
   alias {
-    name                   = aws_lb.aeims_alb.dns_name
-    zone_id                = aws_lb.aeims_alb.zone_id
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
     evaluate_target_health = true
   }
 }
@@ -808,45 +894,123 @@ resource "aws_route53_record" "nycflirts_com_www" {
   type    = "A"
 
   alias {
-    name                   = aws_lb.aeims_alb.dns_name
-    zone_id                = aws_lb.aeims_alb.zone_id
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
     evaluate_target_health = true
   }
 }
 
-# Add flirts.nyc certificate to ALB listener for SNI
-resource "aws_lb_listener_certificate" "flirts_nyc" {
-  listener_arn    = aws_lb_listener.aeims_https.arn
-  certificate_arn = aws_acm_certificate_validation.flirts_nyc.certificate_arn
+# Add flirts.nyc certificate to ALB listener for SNI (old non-production - commented out)
+# resource "aws_lb_listener_certificate" "flirts_nyc" {
+#   listener_arn    = aws_lb_listener.aeims_https.arn
+#   certificate_arn = aws_acm_certificate_validation.flirts_nyc.certificate_arn
+# }
+
+# ACM Certificate for sexacomms.com
+resource "aws_acm_certificate" "sexacomms" {
+  domain_name               = "sexacomms.com"
+  subject_alternative_names = [
+    "*.sexacomms.com",
+    "www.sexacomms.com",
+    "login.sexacomms.com"
+  ]
+  validation_method = "DNS"
+  tags = {
+    Name        = "sexacomms-ssl-cert"
+    Environment = var.environment
+    Project     = "AEIMS"
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
-# ALB Listener Rule for flirts.nyc and nycflirts.com
-resource "aws_lb_listener_rule" "flirts_nyc" {
-  listener_arn = aws_lb_listener.aeims_https.arn
-  priority     = 50
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.aeims_ecs.arn
-  }
-
-  condition {
-    host_header {
-      values = [
-        "flirts.nyc",
-        "www.flirts.nyc",
-        "nycflirts.com",
-        "www.nycflirts.com"
-      ]
-    }
-  }
-
+# Route53 hosted zone for sexacomms.com
+resource "aws_route53_zone" "sexacomms_com" {
+  name = "sexacomms.com"
   tags = {
-    Name        = "flirts-domains-rule"
+    Name        = "sexacomms-com-zone"
     Environment = var.environment
     Project     = "AEIMS"
   }
 }
+
+# Route53 validation records for sexacomms.com ACM certificate
+resource "aws_route53_record" "sexacomms_cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.sexacomms.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = aws_route53_zone.sexacomms_com.zone_id
+}
+
+# ACM Certificate validation for sexacomms.com
+resource "aws_acm_certificate_validation" "sexacomms" {
+  certificate_arn         = aws_acm_certificate.sexacomms.arn
+  validation_record_fqdns = [for record in aws_route53_record.sexacomms_cert_validation : record.fqdn]
+}
+
+# Route53 A record for sexacomms.com pointing to production ALB
+resource "aws_route53_record" "sexacomms_com" {
+  zone_id = aws_route53_zone.sexacomms_com.zone_id
+  name    = "sexacomms.com"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
+    evaluate_target_health = true
+  }
+}
+
+# Route53 A record for www.sexacomms.com
+resource "aws_route53_record" "sexacomms_com_www" {
+  zone_id = aws_route53_zone.sexacomms_com.zone_id
+  name    = "www.sexacomms.com"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.aeims_alb_production.dns_name
+    zone_id                = aws_lb.aeims_alb_production.zone_id
+    evaluate_target_health = true
+  }
+}
+
+# ALB Listener Rule for flirts.nyc and nycflirts.com (old non-production - commented out)
+# resource "aws_lb_listener_rule" "flirts_nyc" {
+#   listener_arn = aws_lb_listener.aeims_https.arn
+#   priority     = 50
+#
+#   action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.aeims_ecs.arn
+#   }
+#
+#   condition {
+#     host_header {
+#       values = [
+#         "flirts.nyc",
+#         "www.flirts.nyc",
+#         "nycflirts.com",
+#         "www.nycflirts.com"
+#       ]
+#     }
+#   }
+#
+#   tags = {
+#     Name        = "flirts-domains-rule"
+#     Environment = var.environment
+#     Project     = "AEIMS"
+#   }
+# }
 
 # CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "aeims_logs" {
@@ -883,7 +1047,7 @@ resource "aws_ecs_task_definition" "aeims_app" {
   container_definitions = jsonencode([
     {
       name      = "aeims"
-      image     = "515966511618.dkr.ecr.us-east-1.amazonaws.com/afterdarksys/aeims:1759390579"
+      image     = "515966511618.dkr.ecr.us-east-1.amazonaws.com/afterdarksys/aeims:latest"
       essential = true
       portMappings = [
         {
@@ -899,34 +1063,72 @@ resource "aws_ecs_task_definition" "aeims_app" {
           "awslogs-stream-prefix" = "ecs"
         }
       }
+      healthCheck = {
+        command = [
+          "CMD-SHELL",
+          "curl -f http://localhost/health || exit 1"
+        ]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 60
+      }
       environment = [
+        {
+          name  = "VIRTUAL_HOSTS_ENABLED"
+          value = "true"
+        },
         {
           name  = "DOMAIN_NAME"
           value = var.domain_name
         },
         {
+          name  = "ENVIRONMENT"
+          value = "production"
+        },
+        {
+          name  = "SECURITY_PATCHES_APPLIED"
+          value = "2025-10-07"
+        },
+        {
           name  = "DB_HOST"
-          value = var.postgres_host
+          value = "aeims-postgres.cluster-c9j2q6p1e0xd.us-east-1.rds.amazonaws.com"
         },
         {
           name  = "DB_PORT"
-          value = var.postgres_port
+          value = "5432"
         },
         {
           name  = "DB_NAME"
-          value = var.postgres_database
+          value = "aeims_core"
         },
         {
           name  = "DB_USER"
-          value = var.postgres_username
+          value = "aeims_user"
         },
         {
           name  = "DB_PASS"
-          value = var.postgres_password
+          value = "secure_password_123"
         },
         {
-          name  = "ENVIRONMENT"
-          value = var.environment
+          name  = "DATABASE_HOST"
+          value = "aeims-postgres.cluster-c9j2q6p1e0xd.us-east-1.rds.amazonaws.com"
+        },
+        {
+          name  = "DATABASE_PORT"
+          value = "5432"
+        },
+        {
+          name  = "DATABASE_NAME"
+          value = "aeims_core"
+        },
+        {
+          name  = "DATABASE_USER"
+          value = "aeims_user"
+        },
+        {
+          name  = "DATABASE_PASS"
+          value = "secure_password_123"
         }
       ]
     }
@@ -954,12 +1156,12 @@ resource "aws_ecs_service" "aeims_service" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.aeims_ecs.arn
+    target_group_arn = aws_lb_target_group.aeims_ecs_production.arn
     container_name   = "aeims"
     container_port   = 80
   }
 
-  depends_on = [aws_lb_listener.aeims_https, aws_lb_listener_rule.aeims_ecs]
+  depends_on = [aws_lb_listener.aeims_production_https, aws_lb_target_group.aeims_ecs_production]
 
   tags = {
     Name        = "aeims-service"
@@ -978,6 +1180,14 @@ resource "aws_security_group" "aeims_ecs" {
     to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.aeims_alb.id]
+  }
+
+  # Allow traffic from production ALB security group
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.aeims_alb_production.id]
   }
 
   egress {
@@ -1033,5 +1243,154 @@ resource "aws_cloudwatch_log_group" "aeims_ecs_logs" {
     Name        = "aeims-ecs-logs"
     Environment = var.environment
     Project     = "AEIMS"
+  }
+}
+
+# Production ALB HTTP Listener (redirect to HTTPS)
+resource "aws_lb_listener" "aeims_production_http" {
+  load_balancer_arn = aws_lb.aeims_alb_production.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+      host        = "#{host}"
+      path        = "/#{path}"
+      query       = "#{query}"
+    }
+  }
+}
+
+# Production ALB HTTPS Listener
+resource "aws_lb_listener" "aeims_production_https" {
+  load_balancer_arn = aws_lb.aeims_alb_production.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
+  certificate_arn   = aws_acm_certificate_validation.aeims.certificate_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aeims_ecs_production.arn
+  }
+}
+
+# Add SSL certificates to production listener
+resource "aws_lb_listener_certificate" "production_flirts_nyc" {
+  listener_arn    = aws_lb_listener.aeims_production_https.arn
+  certificate_arn = aws_acm_certificate_validation.flirts_nyc.certificate_arn
+}
+
+resource "aws_lb_listener_certificate" "production_sexacomms" {
+  listener_arn    = aws_lb_listener.aeims_production_https.arn
+  certificate_arn = aws_acm_certificate_validation.sexacomms.certificate_arn
+}
+
+# Production ALB Listener Rules for domain-specific routing
+resource "aws_lb_listener_rule" "production_flirts_nyc" {
+  listener_arn = aws_lb_listener.aeims_production_https.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aeims_ecs_production.arn
+  }
+
+  condition {
+    host_header {
+      values = [
+        "www.flirts.nyc",
+        "flirts.nyc"
+      ]
+    }
+  }
+
+  tags = {
+    Name        = "flirts-nyc-rule"
+    Environment = "production"
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_lb_listener_rule" "production_nycflirts" {
+  listener_arn = aws_lb_listener.aeims_production_https.arn
+  priority     = 110
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aeims_ecs_production.arn
+  }
+
+  condition {
+    host_header {
+      values = [
+        "nycflirts.com",
+        "www.nycflirts.com"
+      ]
+    }
+  }
+
+  tags = {
+    Name        = "nycflirts-rule"
+    Environment = "production"
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_lb_listener_rule" "production_sexacomms" {
+  listener_arn = aws_lb_listener.aeims_production_https.arn
+  priority     = 120
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aeims_ecs_production.arn
+  }
+
+  condition {
+    host_header {
+      values = [
+        "sexacomms.com",
+        "login.sexacomms.com",
+        "www.sexacomms.com"
+      ]
+    }
+  }
+
+  tags = {
+    Name        = "sexacomms-rule"
+    Environment = "production"
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_lb_listener_rule" "production_aeims_app" {
+  listener_arn = aws_lb_listener.aeims_production_https.arn
+  priority     = 130
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aeims_ecs_production.arn
+  }
+
+  condition {
+    host_header {
+      values = [
+        "aeims.app",
+        "admin.aeims.app",
+        "www.aeims.app",
+        "api.aeims.app"
+      ]
+    }
+  }
+
+  tags = {
+    Name        = "aeims-app-rule"
+    Environment = "production"
+    ManagedBy   = "terraform"
   }
 }
