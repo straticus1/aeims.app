@@ -12,7 +12,7 @@ if (strpos($host, 'sexacomms.com') === false) {
 }
 
 // Include common AEIMS functionality
-require_once '../../includes/SiteSpecificAuth.php';
+require_once __DIR__ . '/../../includes/SiteSpecificAuth.php';
 $auth = new SiteSpecificAuth();
 $siteConfig = $auth->getSiteConfig();
 
