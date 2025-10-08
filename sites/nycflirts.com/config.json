@@ -1,0 +1,8 @@
+{
+    "site_name": "nycflirts.com",
+    "theme": "default",
+    "features": ["chat", "voice", "video"],
+    "login_logo": "/assets/images/logo.png",
+    "telephony_platform_url": "http://localhost:3000",
+    "enabled": true
+}

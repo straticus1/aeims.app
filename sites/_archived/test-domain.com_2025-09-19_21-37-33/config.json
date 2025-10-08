@@ -1,0 +1,126 @@
+{
+    "site_id": "site_test_domain_com",
+    "site_name": "Test Adult Site",
+    "site_description": "Test adult entertainment platform",
+    "active": true,
+    "created_at": "2025-09-19",
+    "integration_type": "api",
+    "service_type": "hybrid",
+    "theme": {
+        "primary_color": "#ff6b6b",
+        "secondary_color": "#4ecdc4",
+        "accent_color": "#45b7d1",
+        "background_color": "#1a1a1a",
+        "text_color": "#ffffff",
+        "logo_url": "/assets/site_test_domain_com/logo.png",
+        "logo_dark_url": "/assets/site_test_domain_com/logo-dark.png",
+        "favicon_url": "/assets/site_test_domain_com/favicon.ico",
+        "custom_css": "/assets/site_test_domain_com/theme.css",
+        "font_family": "Roboto, sans-serif",
+        "layout_style": "modern"
+    },
+    "features": {
+        "video_calls": true,
+        "phone_calls": true,
+        "chat": true,
+        "cam2cam": true,
+        "group_shows": false,
+        "private_shows": true,
+        "gifts": true,
+        "tipping": true,
+        "recordings": true,
+        "favorites": true,
+        "blocking": true,
+        "reporting": true,
+        "premium_content": false,
+        "subscription_model": false,
+        "pay_per_view": false
+    },
+    "operators": {
+        "allowed_operators": [],
+        "auto_assign": true,
+        "require_approval": false,
+        "separate_profiles": true,
+        "max_operators": 50,
+        "operator_categories": [
+            "standard",
+            "premium",
+            "vip"
+        ],
+        "default_category": "standard",
+        "commission_rate": 0.6,
+        "bonus_system": true
+    },
+    "billing": {
+        "currency": "USD",
+        "payment_methods": [
+            "credit_card",
+            "crypto"
+        ],
+        "pricing_model": "per_minute",
+        "base_rate": 2.99,
+        "premium_rate": 4.99,
+        "vip_rate": 7.99,
+        "minimum_purchase": 10,
+        "refund_policy": "7_days",
+        "chargeback_protection": true
+    },
+    "compliance": {
+        "age_verification": true,
+        "geo_restrictions": [
+            "US",
+            "CA",
+            "UK",
+            "AU"
+        ],
+        "geo_blocks": [
+            "CN",
+            "RU"
+        ],
+        "content_filtering": "standard",
+        "privacy_policy": "/site_test_domain_com/privacy",
+        "terms_of_service": "/site_test_domain_com/terms",
+        "dmca_policy": "/site_test_domain_com/dmca",
+        "cookie_policy": "/site_test_domain_com/cookies",
+        "data_retention_days": 365,
+        "gdpr_compliant": true,
+        "ccpa_compliant": true,
+        "content_moderation": "standard"
+    },
+    "integrations": {
+        "payment_processor": "stripe_site_test_domain_com",
+        "backup_processor": "authorize_net_site_test_domain_com",
+        "analytics": "google_analytics_site_test_domain_com",
+        "chat_provider": "custom",
+        "video_provider": "agora",
+        "cdn": "cloudflare_site_test_domain_com",
+        "email_service": "sendgrid_site_test_domain_com",
+        "sms_provider": "twilio_site_test_domain_com",
+        "captcha_service": "recaptcha_site_test_domain_com",
+        "fraud_detection": "maxmind"
+    },
+    "security": {
+        "ssl_required": true,
+        "two_factor_auth": false,
+        "password_policy": "strong",
+        "session_timeout": 120,
+        "max_login_attempts": 5,
+        "ip_whitelist": [],
+        "rate_limiting": true,
+        "captcha_on_signup": true,
+        "email_verification": true,
+        "phone_verification": false
+    },
+    "seo": {
+        "site_title": "Test Adult Site - Adult Entertainment Platform",
+        "meta_description": "Test adult entertainment platform",
+        "keywords": [
+            "hybrid",
+            "adult entertainment",
+            "platform"
+        ],
+        "robots_txt": "allow",
+        "sitemap_enabled": true,
+        "schema_markup": true
+    }
+}

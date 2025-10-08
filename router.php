@@ -47,11 +47,9 @@ switch (true) {
         return;
 
     case ($host === 'flirts.nyc' || $host === 'www.flirts.nyc'):
-        // Customer site - check multiple possible locations
-        if (file_exists('sites/flirts-nyc/index.php')) {
-            require_once 'sites/flirts-nyc/index.php';
-        } elseif (file_exists('../aeims/sites/flirts.nyc/index.php')) {
-            require_once '../aeims/sites/flirts.nyc/index.php';
+        // Customer site - use correct path
+        if (file_exists('sites/flirts.nyc/index.php')) {
+            require_once 'sites/flirts.nyc/index.php';
         } else {
             // Fallback to main site with customer context
             $_GET['site'] = 'flirts.nyc';
@@ -60,11 +58,9 @@ switch (true) {
         return;
 
     case ($host === 'nycflirts.com' || $host === 'www.nycflirts.com'):
-        // Customer site - check multiple possible locations
-        if (file_exists('sites/nycflirts/index.php')) {
-            require_once 'sites/nycflirts/index.php';
-        } elseif (file_exists('../aeims/sites/nycflirts.com/index.php')) {
-            require_once '../aeims/sites/nycflirts.com/index.php';
+        // Customer site - use correct path
+        if (file_exists('sites/nycflirts.com/index.php')) {
+            require_once 'sites/nycflirts.com/index.php';
         } else {
             // Fallback to main site with customer context
             $_GET['site'] = 'nycflirts.com';
