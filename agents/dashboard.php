@@ -6,6 +6,11 @@
 
 require_once 'includes/OperatorAuth.php';
 
+// OperatorAuth handles session internally, but ensure no duplicate starts
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $auth = new OperatorAuth();
 $config = include 'config.php';
 
@@ -579,6 +584,12 @@ $currentStatus = $operator['settings']['availability']['status'] ?? 'offline';
                         <a href="dashboard.php" class="nav-link active">
                             <span class="nav-icon">📊</span>
                             <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="operator-messages.php" class="nav-link">
+                            <span class="nav-icon">💬</span>
+                            <span>Messages & Chat</span>
                         </a>
                     </li>
                     <li class="nav-item">

@@ -1,186 +1,106 @@
 <?php
-/**
- * AEIMS Admin Dashboard
- * Administrative interface for system management
- */
-
-session_start();
-require_once 'auth_functions.php';
-requireAdmin();
-
-$config = include 'config.php';
-$userInfo = getUserInfo();
-
-// Get system stats
-$systemStats = [
-    'total_users' => count(json_decode(file_get_contents(__DIR__ . '/data/accounts.json'), true) ?? []),
-    'active_sessions' => 1, // Current user
-    'system_status' => 'operational',
-    'uptime' => '99.9%'
-];
-
-// Handle logout
-if (isset($_GET['logout'])) {
-    logout();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
+    header('Location: login.php');
+    exit();
+}
+$config = include __DIR__ . '/config.php';
+if (!is_array($config)) {
+    $config = ['site' => ['name' => 'AEIMS']];
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - AEIMS</title>
-    <link href="assets/css/style.css" rel="stylesheet">
+    <title>Admin Dashboard - <?php echo $config['site']['name']; ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .admin-dashboard {
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --background: #0f0f23;
+            --surface: #252547;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --primary-color: #1e40af;
+            --accent-color: #059669;
+            --border: #374151;
+            --gradient-primary: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 2rem auto;
+            background: var(--surface);
+            padding: 3rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         }
-        .admin-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        h1 {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+        }
+        p { color: var(--text-secondary); margin: 0.75rem 0; }
+        .welcome { font-size: 1.2rem; color: var(--text-primary); margin-bottom: 2rem; }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
             color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid #667eea;
-        }
-        .admin-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        .action-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .action-btn {
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
             text-decoration: none;
+            border-radius: 8px;
             display: inline-block;
-            margin: 5px;
+            margin: 1rem 0.5rem 0 0;
+            border: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
-        .action-btn:hover {
-            background: #5a6fd8;
-        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4); }
+        .btn-secondary { background: var(--surface); border: 1px solid var(--border); }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .info-card { background: var(--background); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); }
+        .info-card h3 { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .info-card p { color: var(--text-primary); font-size: 1.5rem; font-weight: 600; }
     </style>
 </head>
 <body>
-    <div class="admin-dashboard">
-        <div class="admin-header">
-            <h1>Admin Dashboard</h1>
-            <p>Welcome back, <?= htmlspecialchars($userInfo['name']) ?>!</p>
-            <p>Administrator Control Panel</p>
-        </div>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <p class="welcome">Welcome back, <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong></p>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Users</h3>
-                <div style="font-size: 2em; color: #667eea;"><?= $systemStats['total_users'] ?></div>
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>User Type</h3>
+                <p><?php echo htmlspecialchars(ucfirst($_SESSION['user_type'])); ?></p>
             </div>
-            <div class="stat-card">
-                <h3>Active Sessions</h3>
-                <div style="font-size: 2em; color: #28a745;"><?= $systemStats['active_sessions'] ?></div>
+            <div class="info-card">
+                <h3>Login Time</h3>
+                <p><?php echo date('H:i', $_SESSION['login_time']); ?></p>
             </div>
-            <div class="stat-card">
-                <h3>System Status</h3>
-                <div style="font-size: 1.5em; color: #28a745;"><?= ucfirst($systemStats['system_status']) ?></div>
-            </div>
-            <div class="stat-card">
-                <h3>Uptime</h3>
-                <div style="font-size: 2em; color: #17a2b8;"><?= $systemStats['uptime'] ?></div>
+            <div class="info-card">
+                <h3>Status</h3>
+                <p style="color: var(--accent-color);">Active</p>
             </div>
         </div>
 
-        <div class="admin-actions">
-            <div class="action-card">
-                <h3>User Management</h3>
-                <p>Manage user accounts and permissions</p>
-                <a href="admin.php" class="action-btn">Manage Users</a>
-                <a href="analytics.php" class="action-btn">View Analytics</a>
-            </div>
-
-            <div class="action-card">
-                <h3>System Configuration</h3>
-                <p>Configure system settings and parameters</p>
-                <a href="setup.php" class="action-btn">System Setup</a>
-                <a href="system-health.php" class="action-btn">System Health</a>
-            </div>
-
-            <div class="action-card">
-                <h3>Support & Monitoring</h3>
-                <p>Monitor system performance and support</p>
-                <a href="support.php" class="action-btn">Support Center</a>
-                <a href="dashboard.php" class="action-btn">User Dashboard</a>
-                <a href="auth.php" class="action-btn">🔐 Authentication Status</a>
-            </div>
-
-            <div class="action-card">
-                <h3>Operator Verification</h3>
-                <p>Manage operator identity verification and revalidation</p>
-                <a href="operator-verification-admin.php" class="action-btn">Verification Status</a>
-                <button onclick="runRevalidationCheck()" class="action-btn" style="background: #28a745;">Run Revalidation Check</button>
-            </div>
-        </div>
-
-        <div style="margin-top: 30px; text-align: center;">
-            <a href="?logout=1" class="action-btn" style="background: #dc3545;">Logout</a>
+        <div style="margin-top: 2rem;">
+            <a href="auth.php" class="btn">View Auth Status</a>
+            <a href="logout.php" class="btn btn-secondary">Logout</a>
         </div>
     </div>
-
-    <script>
-        function runRevalidationCheck() {
-            if (confirm('Run revalidation check for all operators? This will send notifications to operators with expired or expiring verifications.')) {
-                const button = event.target;
-                button.innerHTML = 'Running...';
-                button.disabled = true;
-
-                fetch('revalidation-checker.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'run_check=1'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    let message = `Revalidation check completed:\n`;
-                    message += `- Total operators checked: ${data.summary.total_operators_checked}\n`;
-                    message += `- Expired verifications: ${data.summary.expired_verifications}\n`;
-                    message += `- Expiring soon: ${data.summary.expiring_soon}\n`;
-                    message += `- Notifications sent: ${data.summary.notifications_sent}`;
-
-                    alert(message);
-                    button.innerHTML = 'Run Revalidation Check';
-                    button.disabled = false;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error running revalidation check. Please try again.');
-                    button.innerHTML = 'Run Revalidation Check';
-                    button.disabled = false;
-                });
-            }
-        }
-    </script>
 </body>
 </html>

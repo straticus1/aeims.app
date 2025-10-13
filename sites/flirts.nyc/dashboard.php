@@ -4,7 +4,9 @@
  * Main interface for logged-in customers to browse operators and manage account
  */
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Check authentication
 if (!isset($_SESSION['customer_id'])) {
@@ -22,7 +24,11 @@ try {
     $customerManager = new \AEIMS\Services\CustomerManager();
     $operatorManager = new \AEIMS\Services\OperatorManager();
 
-    $site = $siteManager->getSite('flirts.nyc');
+    // Dynamically determine site from HTTP_HOST
+    $hostname = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'flirts.nyc';
+    $hostname = preg_replace('/^www\./', '', $hostname); // Remove www.
+    $antml:parameter name="hostname">preg_replace('/:\d+$/', '', $hostname);  // Remove port
+    $site = $siteManager->getSite($hostname);
     $customer = $customerManager->getCustomer($_SESSION['customer_id']);
     $operators = $operatorManager->getActiveOperators();
 
@@ -334,6 +340,10 @@ if ($selectedCategory === 'all') {
                 <div class="credits-display">
                     Credits: $<?= number_format($customer['billing']['credits'], 2) ?>
                 </div>
+                <a href="/search-operators.php" class="btn btn-secondary">Search</a>
+                <a href="/messages.php" class="btn btn-secondary">Mail</a>
+                <a href="/chat.php" class="btn btn-secondary">Chat</a>
+                <a href="/activity-log.php" class="btn btn-secondary">Activity</a>
                 <a href="/payment.php" class="btn btn-primary">Add Credits</a>
                 <span>Welcome, <?= htmlspecialchars($customer['username']) ?></span>
                 <a href="/auth.php?action=logout" class="btn btn-secondary">Logout</a>

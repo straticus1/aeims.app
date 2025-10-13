@@ -2,9 +2,28 @@
 /**
  * AEIMS Authentication Status Page
  * Shows authentication status and session information
+ *
+ * Routes to site-specific auth.php for customer sites
  */
 
-session_start();
+// Virtual Host Routing - delegate to site-specific auth
+$host = $_SERVER['HTTP_HOST'] ?? '';
+$host = preg_replace('/^www\./', '', $host);
+
+if ($host === 'flirts.nyc' && file_exists(__DIR__ . '/sites/flirts.nyc/auth.php')) {
+    require_once __DIR__ . '/sites/flirts.nyc/auth.php';
+    exit;
+}
+
+if ($host === 'nycflirts.com' && file_exists(__DIR__ . '/sites/nycflirts.com/auth.php')) {
+    require_once __DIR__ . '/sites/nycflirts.com/auth.php';
+    exit;
+}
+
+// Default: AEIMS admin authentication status page
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once 'auth_functions.php';
 
 $config = include 'config.php';

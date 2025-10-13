@@ -1,5 +1,26 @@
 <?php
-session_start();
+/**
+ * AEIMS Login - Routes to site-specific login pages
+ */
+
+// Virtual Host Routing - delegate to site-specific login
+$host = $_SERVER['HTTP_HOST'] ?? '';
+$host = preg_replace('/^www\./', '', $host);
+
+if ($host === 'flirts.nyc' && file_exists(__DIR__ . '/sites/flirts.nyc/login.php')) {
+    require_once __DIR__ . '/sites/flirts.nyc/login.php';
+    exit;
+}
+
+if ($host === 'nycflirts.com' && file_exists(__DIR__ . '/sites/nycflirts.com/login.php')) {
+    require_once __DIR__ . '/sites/nycflirts.com/login.php';
+    exit;
+}
+
+// Default: AEIMS admin/customer login
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Check if already logged in
 if (isset($_SESSION['user_id'])) {
@@ -18,31 +39,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $error_message = 'Please enter both username and password.';
     } else {
-        // Load user accounts
-        $accounts = loadUserAccounts();
-
-        if (validateLogin($username, $password, $accounts)) {
-            $user = $accounts[$username];
-
-            // Set session variables
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $username;
-            $_SESSION['user_type'] = $user['type'];
-            $_SESSION['user_name'] = $user['name'];
-            $_SESSION['login_time'] = time();
-
-            // Redirect based on user type
-            if ($user['type'] === 'admin') {
-                header('Location: admin-dashboard.php');
-            } else {
-                header('Location: dashboard.php');
-            }
-            exit();
+        // Check if account is locked
+        if (isAccountLocked($username)) {
+            $error_message = 'Account temporarily locked due to multiple failed login attempts. Please try again in 15 minutes.';
         } else {
-            $error_message = 'Invalid username or password.';
+            // Load user accounts
+            $accounts = loadUserAccounts();
 
-            // Log failed attempt
-            logLoginAttempt($username, false);
+            if (validateLogin($username, $password, $accounts)) {
+                $user = $accounts[$username];
+
+                // Reset failed attempts on successful login
+                resetFailedAttempts($username);
+
+                // Set session variables
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $username;
+                $_SESSION['user_type'] = $user['type'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['login_time'] = time();
+
+                // Log successful attempt
+                logLoginAttempt($username, true);
+
+                // Check for return URL first
+                $returnUrl = $_POST['return_url'] ?? $_GET['return_url'] ?? '';
+
+                if (!empty($returnUrl) && $returnUrl !== '/') {
+                    // Validate return URL is safe (same domain or relative)
+                    if (strpos($returnUrl, '/') === 0 || strpos($returnUrl, 'sexacomms.com') !== false) {
+                        header('Location: ' . $returnUrl);
+                        exit();
+                    }
+                }
+
+                // Default redirect based on user type
+                if ($user['type'] === 'admin') {
+                    header('Location: admin-dashboard.php');
+                } else {
+                    header('Location: dashboard.php');
+                }
+                exit();
+            } else {
+                // Track failed attempt
+                $attempts = trackFailedAttempt($username);
+
+                if ($attempts >= 5) {
+                    $error_message = 'Too many failed login attempts. Account locked for 15 minutes.';
+                } else {
+                    $remaining = 5 - $attempts;
+                    $error_message = "Invalid username or password. $remaining attempts remaining.";
+                }
+
+                // Log failed attempt
+                logLoginAttempt($username, false);
+            }
         }
     }
 }
@@ -61,7 +112,7 @@ function loadUserAccounts() {
                 'id' => 'admin-001',
                 'name' => 'AEIMS Administrator',
                 'type' => 'admin',
-                'password' => password_hash('AEIMSAdmin2024!SecurePass', PASSWORD_DEFAULT),
+                'password' => password_hash('admin123', PASSWORD_DEFAULT),
                 'email' => 'admin@aeims.app',
                 'created_at' => date('c'),
                 'permissions' => ['all']
@@ -71,7 +122,7 @@ function loadUserAccounts() {
                 'id' => 'cust-001',
                 'name' => 'Demo Customer',
                 'type' => 'customer',
-                'password' => password_hash('demo123', PASSWORD_DEFAULT),
+                'password' => password_hash('password123', PASSWORD_DEFAULT),
                 'email' => 'demo@example.com',
                 'domains' => ['demo.example.com'],
                 'status' => 'active',
@@ -90,6 +141,91 @@ function loadUserAccounts() {
     }
 
     return json_decode(file_get_contents($accountsFile), true) ?? [];
+}
+
+/**
+ * Check if account is locked due to failed attempts
+ */
+function isAccountLocked($username) {
+    $lockFile = __DIR__ . '/data/account_locks.json';
+
+    if (!file_exists($lockFile)) {
+        return false;
+    }
+
+    $locks = json_decode(file_get_contents($lockFile), true) ?? [];
+
+    if (!isset($locks[$username])) {
+        return false;
+    }
+
+    $lockData = $locks[$username];
+    $lockDuration = 15 * 60; // 15 minutes
+
+    // Check if lock has expired
+    if (time() - $lockData['locked_at'] > $lockDuration) {
+        // Lock expired, remove it
+        unset($locks[$username]);
+        file_put_contents($lockFile, json_encode($locks, JSON_PRETTY_PRINT));
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Track failed login attempts and lock account if needed
+ */
+function trackFailedAttempt($username) {
+    $lockFile = __DIR__ . '/data/account_locks.json';
+    $dataDir = dirname($lockFile);
+
+    if (!is_dir($dataDir)) {
+        mkdir($dataDir, 0755, true);
+    }
+
+    $locks = [];
+    if (file_exists($lockFile)) {
+        $locks = json_decode(file_get_contents($lockFile), true) ?? [];
+    }
+
+    if (!isset($locks[$username])) {
+        $locks[$username] = [
+            'attempts' => 0,
+            'first_attempt' => time(),
+            'locked_at' => null
+        ];
+    }
+
+    $locks[$username]['attempts']++;
+    $locks[$username]['last_attempt'] = time();
+
+    // Lock after 5 failed attempts
+    if ($locks[$username]['attempts'] >= 5) {
+        $locks[$username]['locked_at'] = time();
+    }
+
+    file_put_contents($lockFile, json_encode($locks, JSON_PRETTY_PRINT));
+
+    return $locks[$username]['attempts'];
+}
+
+/**
+ * Reset failed attempts on successful login
+ */
+function resetFailedAttempts($username) {
+    $lockFile = __DIR__ . '/data/account_locks.json';
+
+    if (!file_exists($lockFile)) {
+        return;
+    }
+
+    $locks = json_decode(file_get_contents($lockFile), true) ?? [];
+
+    if (isset($locks[$username])) {
+        unset($locks[$username]);
+        file_put_contents($lockFile, json_encode($locks, JSON_PRETTY_PRINT));
+    }
 }
 
 /**
@@ -208,12 +344,12 @@ function logLoginAttempt($username, $success) {
                     <div class="demo-account">
                         <strong>Customer Demo:</strong><br>
                         Email: demo@example.com<br>
-                        Password: demo123
+                        Password: password123
                     </div>
                     <div class="demo-account">
                         <strong>Admin Access:</strong><br>
                         Username: admin<br>
-                        Password: <span class="admin-password">AEIMSAdmin2024!SecurePass</span>
+                        Password: <span class="admin-password">admin123</span>
                     </div>
                 </div>
 
