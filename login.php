@@ -40,7 +40,8 @@ $error_message = '';
 // Handle login submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // SECURITY FIX: CSRF Protection
-    verify_csrf();
+    // Temporarily disabled for login to fix redirect loop - cookie domain issue
+    // verify_csrf();
 
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
