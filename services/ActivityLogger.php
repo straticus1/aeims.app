@@ -7,15 +7,11 @@ use Exception;
 /**
  * Activity Logger
  * Tracks all customer spending, operator earnings, and site activity
+ * UPDATED: Now uses DataLayer for PostgreSQL/JSON abstraction
  */
 class ActivityLogger
 {
-    private array $activities = [];
-    private array $operatorViews = [];
-    private array $profileViews = [];
-    private string $activitiesFile;
-    private string $operatorViewsFile;
-    private string $profileViewsFile;
+    private $dataLayer;
 
     // Activity types
     const TYPE_MESSAGE = 'message';
@@ -32,60 +28,8 @@ class ActivityLogger
 
     public function __construct()
     {
-        $this->activitiesFile = __DIR__ . '/../data/activity_log.json';
-        $this->operatorViewsFile = __DIR__ . '/../data/operator_views.json';
-        $this->profileViewsFile = __DIR__ . '/../data/profile_views.json';
-        $this->loadData();
-    }
-
-    private function loadData(): void
-    {
-        // Load activities
-        if (file_exists($this->activitiesFile)) {
-            $data = json_decode(file_get_contents($this->activitiesFile), true);
-            $this->activities = $data['activities'] ?? [];
-        }
-
-        // Load operator views
-        if (file_exists($this->operatorViewsFile)) {
-            $data = json_decode(file_get_contents($this->operatorViewsFile), true);
-            $this->operatorViews = $data['views'] ?? [];
-        }
-
-        // Load profile views
-        if (file_exists($this->profileViewsFile)) {
-            $data = json_decode(file_get_contents($this->profileViewsFile), true);
-            $this->profileViews = $data['views'] ?? [];
-        }
-    }
-
-    private function saveData(): void
-    {
-        $dataDir = dirname($this->activitiesFile);
-        if (!is_dir($dataDir)) {
-            mkdir($dataDir, 0755, true);
-        }
-
-        // Save activities
-        $activityData = [
-            'activities' => $this->activities,
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-        file_put_contents($this->activitiesFile, json_encode($activityData, JSON_PRETTY_PRINT));
-
-        // Save operator views
-        $operatorViewData = [
-            'views' => $this->operatorViews,
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-        file_put_contents($this->operatorViewsFile, json_encode($operatorViewData, JSON_PRETTY_PRINT));
-
-        // Save profile views
-        $profileViewData = [
-            'views' => $this->profileViews,
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-        file_put_contents($this->profileViewsFile, json_encode($profileViewData, JSON_PRETTY_PRINT));
+        require_once __DIR__ . '/../includes/DataLayer.php';
+        $this->dataLayer = getDataLayer();
     }
 
     /**
@@ -114,9 +58,7 @@ class ActivityLogger
             'metadata' => $metadata
         ];
 
-        $this->activities[$activityId] = $activity;
-        $this->saveData();
-
+        $this->dataLayer->saveActivity($activity);
         return $activityId;
     }
 
@@ -137,9 +79,7 @@ class ActivityLogger
             'time' => date('H:i:s')
         ];
 
-        $this->operatorViews[$viewId] = $view;
-        $this->saveData();
-
+        $this->dataLayer->saveOperatorView($view);
         return $viewId;
     }
 
@@ -160,9 +100,7 @@ class ActivityLogger
             'time' => date('H:i:s')
         ];
 
-        $this->profileViews[$viewId] = $view;
-        $this->saveData();
-
+        $this->dataLayer->saveProfileView($view);
         return $viewId;
     }
 
@@ -176,26 +114,12 @@ class ActivityLogger
         ?string $operatorId = null,
         ?string $activityType = null
     ): array {
-        $filtered = [];
+        $activities = $this->dataLayer->getCustomerActivities($customerId, $startDate, $endDate, $operatorId, $activityType);
+
         $total = 0.0;
         $breakdown = [];
 
-        foreach ($this->activities as $activity) {
-            if ($activity['customer_id'] !== $customerId) {
-                continue;
-            }
-
-            // Date filter
-            if ($startDate && $activity['date'] < $startDate) continue;
-            if ($endDate && $activity['date'] > $endDate) continue;
-
-            // Operator filter
-            if ($operatorId && $activity['operator_id'] !== $operatorId) continue;
-
-            // Activity type filter
-            if ($activityType && $activity['type'] !== $activityType) continue;
-
-            $filtered[] = $activity;
+        foreach ($activities as $activity) {
             $total += $activity['amount'];
 
             // Build breakdown by type
@@ -210,10 +134,10 @@ class ActivityLogger
         }
 
         return [
-            'activities' => $filtered,
+            'activities' => $activities,
             'total_spent' => $total,
             'breakdown' => $breakdown,
-            'count' => count($filtered)
+            'count' => count($activities)
         ];
     }
 
@@ -227,26 +151,12 @@ class ActivityLogger
         ?string $customerId = null,
         ?string $activityType = null
     ): array {
-        $filtered = [];
+        $activities = $this->dataLayer->getOperatorActivities($operatorId, $startDate, $endDate, $customerId, $activityType);
+
         $totalEarnings = 0.0;
         $breakdown = [];
 
-        foreach ($this->activities as $activity) {
-            if ($activity['operator_id'] !== $operatorId) {
-                continue;
-            }
-
-            // Date filter
-            if ($startDate && $activity['date'] < $startDate) continue;
-            if ($endDate && $activity['date'] > $endDate) continue;
-
-            // Customer filter
-            if ($customerId && $activity['customer_id'] !== $customerId) continue;
-
-            // Activity type filter
-            if ($activityType && $activity['type'] !== $activityType) continue;
-
-            $filtered[] = $activity;
+        foreach ($activities as $activity) {
             $totalEarnings += $activity['operator_earnings'];
 
             // Build breakdown by type
@@ -263,10 +173,10 @@ class ActivityLogger
         }
 
         return [
-            'activities' => $filtered,
+            'activities' => $activities,
             'total_earnings' => $totalEarnings,
             'breakdown' => $breakdown,
-            'count' => count($filtered)
+            'count' => count($activities)
         ];
     }
 
@@ -275,35 +185,7 @@ class ActivityLogger
      */
     public function getMostViewedOperators(string $customerId, int $limit = 10): array
     {
-        $operatorCounts = [];
-
-        foreach ($this->operatorViews as $view) {
-            if ($view['customer_id'] !== $customerId) {
-                continue;
-            }
-
-            $opId = $view['operator_id'];
-            if (!isset($operatorCounts[$opId])) {
-                $operatorCounts[$opId] = [
-                    'operator_id' => $opId,
-                    'view_count' => 0,
-                    'last_viewed' => $view['timestamp']
-                ];
-            }
-            $operatorCounts[$opId]['view_count']++;
-
-            // Update last viewed if more recent
-            if ($view['timestamp'] > $operatorCounts[$opId]['last_viewed']) {
-                $operatorCounts[$opId]['last_viewed'] = $view['timestamp'];
-            }
-        }
-
-        // Sort by view count descending
-        usort($operatorCounts, function($a, $b) {
-            return $b['view_count'] - $a['view_count'];
-        });
-
-        return array_slice($operatorCounts, 0, $limit);
+        return $this->dataLayer->getMostViewedOperators($customerId, $limit);
     }
 
     /**
@@ -311,26 +193,7 @@ class ActivityLogger
      */
     public function getProfileViewers(string $customerId, ?string $startDate = null, ?string $endDate = null): array
     {
-        $viewers = [];
-
-        foreach ($this->profileViews as $view) {
-            if ($view['customer_id'] !== $customerId) {
-                continue;
-            }
-
-            // Date filter
-            if ($startDate && $view['date'] < $startDate) continue;
-            if ($endDate && $view['date'] > $endDate) continue;
-
-            $viewers[] = $view;
-        }
-
-        // Sort by most recent first
-        usort($viewers, function($a, $b) {
-            return strtotime($b['timestamp']) - strtotime($a['timestamp']);
-        });
-
-        return $viewers;
+        return $this->dataLayer->getProfileViewers($customerId, $startDate, $endDate);
     }
 
     /**

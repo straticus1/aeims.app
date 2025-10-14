@@ -5,74 +5,28 @@ namespace AEIMS\Services;
 use Exception;
 
 /**
- * ID Verification Manager
+ * ID Verification Manager  
  * Handles operator identity verification with override codes
+ * UPDATED: Now uses DataLayer for PostgreSQL/JSON abstraction
  */
 class IDVerificationManager
 {
-    private array $verifications = [];
-    private array $overrideCodes = [];
-    private string $verificationsFile;
-    private string $overrideCodesFile;
+    private $dataLayer;
 
     // Verification statuses
     const STATUS_PENDING = 'pending';
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
-    const STATUS_OVERRIDE = 'override'; // Bypassed with code
+    const STATUS_OVERRIDE = 'override';
 
     public function __construct()
     {
-        $this->verificationsFile = __DIR__ . '/../data/id_verifications.json';
-        $this->overrideCodesFile = __DIR__ . '/../data/verification_codes.json';
-        $this->loadData();
+        require_once __DIR__ . '/../includes/DataLayer.php';
+        $this->dataLayer = getDataLayer();
     }
 
-    private function loadData(): void
+    public function createVerification(string $operatorId, array $documents = [], string $notes = ''): string
     {
-        // Load verifications
-        if (file_exists($this->verificationsFile)) {
-            $data = json_decode(file_get_contents($this->verificationsFile), true);
-            $this->verifications = $data['verifications'] ?? [];
-        }
-
-        // Load override codes
-        if (file_exists($this->overrideCodesFile)) {
-            $data = json_decode(file_get_contents($this->overrideCodesFile), true);
-            $this->overrideCodes = $data['codes'] ?? [];
-        }
-    }
-
-    private function saveData(): void
-    {
-        $dataDir = dirname($this->verificationsFile);
-        if (!is_dir($dataDir)) {
-            mkdir($dataDir, 0755, true);
-        }
-
-        // Save verifications
-        $verificationData = [
-            'verifications' => $this->verifications,
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-        file_put_contents($this->verificationsFile, json_encode($verificationData, JSON_PRETTY_PRINT));
-
-        // Save override codes
-        $codeData = [
-            'codes' => $this->overrideCodes,
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-        file_put_contents($this->overrideCodesFile, json_encode($codeData, JSON_PRETTY_PRINT));
-    }
-
-    /**
-     * Create a new verification record
-     */
-    public function createVerification(
-        string $operatorId,
-        array $documents = [],
-        string $notes = ''
-    ): string {
         $verificationId = 'verify_' . uniqid();
 
         $verification = [
@@ -88,44 +42,35 @@ class IDVerificationManager
             'rejection_reason' => null
         ];
 
-        $this->verifications[$verificationId] = $verification;
-        $this->saveData();
-
+        $this->dataLayer->saveVerification($verification);
         return $verificationId;
     }
 
-    /**
-     * Verify operator with an override code
-     */
     public function verifyWithCode(string $operatorId, string $code): bool
     {
-        // Check if code exists and is valid
-        if (!isset($this->overrideCodes[$code])) {
+        $codeData = $this->dataLayer->getVerificationCode($code);
+        
+        if (!$codeData) {
             throw new Exception('Invalid verification code');
         }
 
-        $codeData = $this->overrideCodes[$code];
-
-        // Check if code is already used
         if ($codeData['used']) {
             throw new Exception('Verification code has already been used');
         }
 
-        // Check if code is expired
-        if (isset($codeData['expires_at'])) {
-            if (strtotime($codeData['expires_at']) < time()) {
-                throw new Exception('Verification code has expired');
-            }
+        if (isset($codeData['expires_at']) && strtotime($codeData['expires_at']) < time()) {
+            throw new Exception('Verification code has expired');
         }
 
         // Mark code as used
-        $this->overrideCodes[$code]['used'] = true;
-        $this->overrideCodes[$code]['used_by'] = $operatorId;
-        $this->overrideCodes[$code]['used_at'] = date('Y-m-d H:i:s');
+        $codeData['used'] = true;
+        $codeData['used_by'] = $operatorId;
+        $codeData['used_at'] = date('Y-m-d H:i:s');
+        $this->dataLayer->saveVerificationCode($codeData);
 
-        // Create verification record with override status
+        // Create verification record
         $verificationId = 'verify_' . uniqid();
-        $this->verifications[$verificationId] = [
+        $verification = [
             'verification_id' => $verificationId,
             'operator_id' => $operatorId,
             'status' => self::STATUS_OVERRIDE,
@@ -138,108 +83,62 @@ class IDVerificationManager
             'reviewed_at' => date('Y-m-d H:i:s')
         ];
 
-        $this->saveData();
-
+        $this->dataLayer->saveVerification($verification);
         return true;
     }
 
-    /**
-     * Approve a verification
-     */
     public function approveVerification(string $verificationId, string $reviewerId, string $notes = ''): bool
     {
-        if (!isset($this->verifications[$verificationId])) {
+        $verification = $this->dataLayer->getVerification($verificationId);
+        if (!$verification) {
             throw new Exception('Verification not found');
         }
 
-        $this->verifications[$verificationId]['status'] = self::STATUS_APPROVED;
-        $this->verifications[$verificationId]['reviewed_by'] = $reviewerId;
-        $this->verifications[$verificationId]['reviewed_at'] = date('Y-m-d H:i:s');
-        $this->verifications[$verificationId]['updated_at'] = date('Y-m-d H:i:s');
+        $verification['status'] = self::STATUS_APPROVED;
+        $verification['reviewed_by'] = $reviewerId;
+        $verification['reviewed_at'] = date('Y-m-d H:i:s');
+        $verification['updated_at'] = date('Y-m-d H:i:s');
 
         if ($notes) {
-            $this->verifications[$verificationId]['notes'] .= "\n[APPROVED] " . $notes;
+            $verification['notes'] .= "\n[APPROVED] " . $notes;
         }
 
-        $this->saveData();
-
+        $this->dataLayer->saveVerification($verification);
         return true;
     }
 
-    /**
-     * Reject a verification
-     */
     public function rejectVerification(string $verificationId, string $reviewerId, string $reason): bool
     {
-        if (!isset($this->verifications[$verificationId])) {
+        $verification = $this->dataLayer->getVerification($verificationId);
+        if (!$verification) {
             throw new Exception('Verification not found');
         }
 
-        $this->verifications[$verificationId]['status'] = self::STATUS_REJECTED;
-        $this->verifications[$verificationId]['reviewed_by'] = $reviewerId;
-        $this->verifications[$verificationId]['reviewed_at'] = date('Y-m-d H:i:s');
-        $this->verifications[$verificationId]['updated_at'] = date('Y-m-d H:i:s');
-        $this->verifications[$verificationId]['rejection_reason'] = $reason;
+        $verification['status'] = self::STATUS_REJECTED;
+        $verification['reviewed_by'] = $reviewerId;
+        $verification['reviewed_at'] = date('Y-m-d H:i:s');
+        $verification['updated_at'] = date('Y-m-d H:i:s');
+        $verification['rejection_reason'] = $reason;
 
-        $this->saveData();
-
+        $this->dataLayer->saveVerification($verification);
         return true;
     }
 
-    /**
-     * Check if operator is verified
-     */
     public function isOperatorVerified(string $operatorId): bool
     {
-        foreach ($this->verifications as $verification) {
-            if ($verification['operator_id'] === $operatorId &&
-                ($verification['status'] === self::STATUS_APPROVED ||
-                 $verification['status'] === self::STATUS_OVERRIDE)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->dataLayer->isOperatorVerified($operatorId);
     }
 
-    /**
-     * Get operator verification status
-     */
     public function getOperatorVerification(string $operatorId): ?array
     {
-        // Return the most recent verification
-        $operatorVerifications = [];
-
-        foreach ($this->verifications as $verification) {
-            if ($verification['operator_id'] === $operatorId) {
-                $operatorVerifications[] = $verification;
-            }
-        }
-
-        if (empty($operatorVerifications)) {
-            return null;
-        }
-
-        // Sort by created_at descending
-        usort($operatorVerifications, function($a, $b) {
-            return strtotime($b['created_at']) - strtotime($a['created_at']);
-        });
-
-        return $operatorVerifications[0];
+        return $this->dataLayer->getOperatorVerification($operatorId);
     }
 
-    /**
-     * Generate a new override code
-     */
-    public function generateOverrideCode(
-        string $generatedBy,
-        ?string $expiresAt = null,
-        string $notes = ''
-    ): string {
-        // Generate a unique code
+    public function generateOverrideCode(string $generatedBy, ?string $expiresAt = null, string $notes = ''): string
+    {
         $code = 'VERIFY-' . strtoupper(substr(uniqid(), -8));
 
-        $this->overrideCodes[$code] = [
+        $codeData = [
             'code' => $code,
             'generated_by' => $generatedBy,
             'generated_at' => date('Y-m-d H:i:s'),
@@ -250,70 +149,22 @@ class IDVerificationManager
             'notes' => $notes
         ];
 
-        $this->saveData();
-
+        $this->dataLayer->saveVerificationCode($codeData);
         return $code;
     }
 
-    /**
-     * Get all override codes
-     */
     public function getOverrideCodes(): array
     {
-        return $this->overrideCodes;
+        return $this->dataLayer->getAllVerificationCodes();
     }
 
-    /**
-     * Get all pending verifications
-     */
     public function getPendingVerifications(): array
     {
-        $pending = [];
-
-        foreach ($this->verifications as $verification) {
-            if ($verification['status'] === self::STATUS_PENDING) {
-                $pending[] = $verification;
-            }
-        }
-
-        // Sort by created_at descending (newest first)
-        usort($pending, function($a, $b) {
-            return strtotime($b['created_at']) - strtotime($a['created_at']);
-        });
-
-        return $pending;
+        return $this->dataLayer->searchVerifications(['status' => self::STATUS_PENDING]);
     }
 
-    /**
-     * Get verification statistics
-     */
     public function getVerificationStats(): array
     {
-        $stats = [
-            'total' => count($this->verifications),
-            'pending' => 0,
-            'approved' => 0,
-            'rejected' => 0,
-            'override' => 0
-        ];
-
-        foreach ($this->verifications as $verification) {
-            switch ($verification['status']) {
-                case self::STATUS_PENDING:
-                    $stats['pending']++;
-                    break;
-                case self::STATUS_APPROVED:
-                    $stats['approved']++;
-                    break;
-                case self::STATUS_REJECTED:
-                    $stats['rejected']++;
-                    break;
-                case self::STATUS_OVERRIDE:
-                    $stats['override']++;
-                    break;
-            }
-        }
-
-        return $stats;
+        return $this->dataLayer->getVerificationStats();
     }
 }
