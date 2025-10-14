@@ -65,10 +65,19 @@ class SecurityManager {
             'samesite' => 'Lax'
         ];
 
+        // Extract root domain for cookie (works for both www and non-www)
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $host = preg_replace('/:\d+$/', '', $host); // Remove port
+        $cookieDomain = preg_replace('/^www\./', '', $host); // Remove www prefix
+        // Add leading dot for subdomain compatibility
+        if (!empty($cookieDomain) && substr_count($cookieDomain, '.') > 0) {
+            $cookieDomain = '.' . $cookieDomain;
+        }
+
         session_set_cookie_params([
             'lifetime' => $sessionConfig['lifetime'],
             'path' => '/',
-            'domain' => $_SERVER['HTTP_HOST'] ?? '',
+            'domain' => $cookieDomain,
             'secure' => $sessionConfig['secure'] && (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'),
             'httponly' => $sessionConfig['httponly'],
             'samesite' => $sessionConfig['samesite']
