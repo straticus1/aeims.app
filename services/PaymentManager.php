@@ -22,7 +22,9 @@ class PaymentManager
     ];
 
     private const PAYMENT_PROCESSORS = [
-        'stripe' => 'Credit/Debit Card',
+        'stripe' => 'Stripe (Credit/Debit Card)',
+        'authorizenet' => 'Authorize.Net',
+        'paykings' => 'PayKings (High-Risk Processing)',
         'paypal' => 'PayPal',
         'crypto' => 'Cryptocurrency',
         'venmo' => 'Venmo',
@@ -138,7 +140,7 @@ class PaymentManager
     public function refundTransaction(string $transactionId, string $reason = ''): array
     {
         $transaction = $this->dataLayer->getTransaction($transactionId);
-        
+
         if (!$transaction) {
             throw new Exception('Transaction not found');
         }
@@ -153,8 +155,68 @@ class PaymentManager
         $transaction['status'] = 'refunded';
         $transaction['refund_reason'] = $reason;
         $transaction['refunded_at'] = date('Y-m-d H:i:s');
-        
+
         $this->dataLayer->saveTransaction($transaction);
         return $transaction;
+    }
+
+    public function createChargeback(string $transactionId, string $reason, float $amount, array $metadata = []): array
+    {
+        $transaction = $this->dataLayer->getTransaction($transactionId);
+
+        if (!$transaction) {
+            throw new Exception('Transaction not found');
+        }
+
+        $chargebackId = 'cb_' . uniqid();
+        $chargeback = [
+            'chargeback_id' => $chargebackId,
+            'transaction_id' => $transactionId,
+            'customer_id' => $transaction['customer_id'],
+            'amount' => $amount,
+            'reason' => $reason,
+            'status' => 'pending',
+            'created_at' => date('Y-m-d H:i:s'),
+            'metadata' => $metadata
+        ];
+
+        $this->dataLayer->saveChargeback($chargeback);
+
+        $transaction['chargeback_id'] = $chargebackId;
+        $transaction['status'] = 'chargeback';
+        $this->dataLayer->saveTransaction($transaction);
+
+        return $chargeback;
+    }
+
+    public function resolveChargeback(string $chargebackId, string $resolution, string $notes = ''): array
+    {
+        $chargeback = $this->dataLayer->getChargeback($chargebackId);
+
+        if (!$chargeback) {
+            throw new Exception('Chargeback not found');
+        }
+
+        $chargeback['status'] = $resolution; // 'won', 'lost', 'partial'
+        $chargeback['resolution_notes'] = $notes;
+        $chargeback['resolved_at'] = date('Y-m-d H:i:s');
+
+        if ($resolution === 'lost') {
+            $customerManager = new CustomerManager();
+            $customerManager->deductCredits($chargeback['customer_id'], $chargeback['amount'], 'Chargeback lost');
+        }
+
+        $this->dataLayer->saveChargeback($chargeback);
+        return $chargeback;
+    }
+
+    public function getAllChargebacks(?string $status = null): array
+    {
+        return $this->dataLayer->searchChargebacks($status ? ['status' => $status] : []);
+    }
+
+    public function getTransactionStats(?string $startDate = null, ?string $endDate = null): array
+    {
+        return $this->dataLayer->getTransactionStats($startDate, $endDate);
     }
 }
