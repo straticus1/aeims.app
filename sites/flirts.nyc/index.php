@@ -48,7 +48,7 @@ $currentCustomer = $isLoggedIn ? $_SESSION['customer_data'] : null;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($site['name']) ?> - Premium Adult Entertainment</title>
-    <link rel="icon" href="<?= htmlspecialchars($site['theme']['favicon_url']) ?>">
+    <link rel="icon" href="<?= htmlspecialchars($site['theme']['favicon_url'] ?? '/assets/images/favicon.ico') ?>">
     <?php if ($isLoggedIn): ?>
     <script src="/assets/js/notifications.js"></script>
     <?php endif; ?>

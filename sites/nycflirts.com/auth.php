@@ -4,12 +4,12 @@
  * SECURITY UPDATED: Session fixation, CSRF, rate limiting, strong passwords
  */
 
-// Load security manager
+// Load security manager and data layer
 require_once __DIR__ . '/../../includes/SecurityManager.php';
-require_once __DIR__ . '/../../includes/DatabaseManager.php';
+require_once __DIR__ . '/../../includes/DataLayer.php';
 
 $security = SecurityManager::getInstance();
-$db = DatabaseManager::getInstance();
+$dataLayer = getDataLayer();
 
 // Initialize secure session
 $security->initializeSecureSession();
@@ -32,23 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     break;
                 }
 
-                // Load customer data with safe file operations
-                $customersFile = __DIR__ . '/../../data/customers.json';
-                if (file_exists($customersFile)) {
-                    $data = $security->safeJSONRead($customersFile);
-                    $customers = $data['customers'] ?? [];
+                // Load customer using DataLayer
+                $foundCustomer = $dataLayer->getCustomer($username);
 
-                    // Find customer by username
-                    $foundCustomer = null;
-                    foreach ($customers as $customerId => $customer) {
-                        if ($customer['username'] === $username) {
-                            $foundCustomer = $customer;
-                            $foundCustomer['id'] = $customerId;
-                            break;
-                        }
-                    }
-
-                    if ($foundCustomer && password_verify($password, $foundCustomer['password_hash'])) {
+                if ($foundCustomer && password_verify($password, $foundCustomer['password_hash'])) {
                         // Check if customer is authorized for this site
                         if (in_array('nycflirts.com', $foundCustomer['sites'] ?? [])) {
                             // SECURITY FIX: Regenerate session to prevent session fixation
@@ -101,58 +88,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['auth_message'] = 'Please enter a valid email address';
                         $_SESSION['auth_message_type'] = 'error';
                     } else {
-                        // Load and update customer data with safe file operations
-                        $customersFile = __DIR__ . '/../../data/customers.json';
-                        if (file_exists($customersFile)) {
-                            $data = $security->safeJSONRead($customersFile);
-                            $customers = $data['customers'] ?? [];
+                        // Check if username already exists using DataLayer
+                        $existingCustomer = $dataLayer->getCustomer($username);
 
-                            // Check if username already exists
-                            $usernameExists = false;
-                            foreach ($customers as $customer) {
-                                if ($customer['username'] === $username) {
-                                    $usernameExists = true;
-                                    break;
-                                }
-                            }
-
-                            if ($usernameExists) {
-                                $_SESSION['auth_message'] = 'Username already taken';
-                                $_SESSION['auth_message_type'] = 'error';
-                            } else {
-                                // Create new customer
-                                $customerId = 'cust_' . uniqid();
-                                $customers[$customerId] = [
-                                    'customer_id' => $customerId,
-                                    'username' => $username,
-                                    'email' => $email,
-                                    'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-                                    'sites' => ['nycflirts.com'],
-                                    'active' => true,
-                                    'verified' => true,
-                                    'created_at' => date('Y-m-d H:i:s')
-                                ];
-
-                                $data['customers'] = $customers;
-
-                                // SECURITY FIX: Use safe file write
-                                $security->safeJSONWrite($customersFile, $data);
-
-                                // SECURITY FIX: Regenerate session after signup
-                                $security->regenerateSessionOnLogin();
-
-                                // Log them in
-                                $_SESSION['customer_id'] = $customerId;
-                                $_SESSION['customer_username'] = $username;
-                                $_SESSION['customer_email'] = $email;
-                                $_SESSION['auth_message'] = 'Registration successful! Welcome to NYC Flirts';
-                                $_SESSION['auth_message_type'] = 'success';
-                                header('Location: /dashboard.php');
-                                exit;
-                            }
-                        } else {
-                            $_SESSION['auth_message'] = 'Registration system unavailable';
+                        if ($existingCustomer) {
+                            $_SESSION['auth_message'] = 'Username already taken';
                             $_SESSION['auth_message_type'] = 'error';
+                        } else {
+                            // Create new customer
+                            $customerId = 'cust_' . uniqid();
+                            $newCustomer = [
+                                'customer_id' => $customerId,
+                                'username' => $username,
+                                'email' => $email,
+                                'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+                                'sites' => ['nycflirts.com'],
+                                'active' => true,
+                                'verified' => true,
+                                'created_at' => date('Y-m-d H:i:s')
+                            ];
+
+                            // Save new customer using DataLayer
+                            $dataLayer->saveCustomer($newCustomer);
+
+                            // SECURITY FIX: Regenerate session after signup
+                            $security->regenerateSessionOnLogin();
+
+                            // Log them in
+                            $_SESSION['customer_id'] = $customerId;
+                            $_SESSION['customer_username'] = $username;
+                            $_SESSION['customer_email'] = $email;
+                            $_SESSION['auth_message'] = 'Registration successful! Welcome to NYC Flirts';
+                            $_SESSION['auth_message_type'] = 'success';
+                            header('Location: /dashboard.php');
+                            exit;
                         }
                     }
                 }

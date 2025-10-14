@@ -7,7 +7,8 @@
 class OperatorAuth {
     private $config;
     private $aeimsIntegration;
-    
+    private $dataLayer;
+
     public function __construct() {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -24,7 +25,17 @@ class OperatorAuth {
                 $this->config = ['domains' => [], 'portal' => ['name' => 'AEIMS Agents']];
             }
         }
-        
+
+        // Load DataLayer for operator data access
+        $dataLayerPath = dirname(dirname(__DIR__)) . '/includes/DataLayer.php';
+        if (file_exists($dataLayerPath)) {
+            require_once $dataLayerPath;
+            $this->dataLayer = getDataLayer();
+        } else {
+            error_log("OperatorAuth: DataLayer.php not found at: " . $dataLayerPath);
+            $this->dataLayer = null;
+        }
+
         // Include AEIMS integration from parent directory
         $aeimsPath = dirname(dirname(__DIR__)) . '/includes/AeimsIntegration.php';
         if (file_exists($aeimsPath)) {
@@ -55,48 +66,31 @@ class OperatorAuth {
      * Authenticate operator login
      */
     public function authenticate($username, $password) {
-        $operatorsFile = dirname(__DIR__) . '/data/operators.json';
-        
-        if (!file_exists($operatorsFile)) {
-            $operators = $this->createDefaultOperators();
-        } else {
-            $operators = json_decode(file_get_contents($operatorsFile), true) ?? [];
-        }
-        
-        // Find operator by email
-        $operator = null;
-        $foundUsername = null;
-        
-        foreach ($operators as $op) {
-            if ($op['email'] === $username) {
-                $operator = $op;
-                $foundUsername = $op['email'];
-                break;
-            }
-        }
-        
+        // Load operator using DataLayer (searches by username or email)
+        $operator = $this->dataLayer ? $this->dataLayer->getOperator($username) : null;
+
         if (!$operator) {
             $this->logLoginAttempt($username, false, 'User not found');
             return ['success' => false, 'error' => 'Invalid credentials'];
         }
-        
+
         // Check if operator is active
         if (($operator['status'] ?? 'active') !== 'active') {
             $this->logLoginAttempt($username, false, 'Account inactive');
             return ['success' => false, 'error' => 'Account is not active'];
         }
-        
+
         // Verify password
         if (!password_verify($password, $operator['password_hash'])) {
             $this->logLoginAttempt($username, false, 'Invalid password');
             return ['success' => false, 'error' => 'Invalid credentials'];
         }
-        
+
         // Set session
-        $this->createSession($operator, $foundUsername);
-        
+        $this->createSession($operator, $username);
+
         $this->logLoginAttempt($username, true, 'Successful login');
-        
+
         return ['success' => true, 'redirect' => 'dashboard.php'];
     }
     
