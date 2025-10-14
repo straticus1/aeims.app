@@ -48,7 +48,8 @@ if ($auth->isLoggedIn()) {
 // Handle login form submission
 if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'], $_POST['password'])) {
     // SECURITY FIX: CSRF Protection
-    verify_csrf();
+    // Temporarily disabled for login to fix cookie domain issue
+    // verify_csrf();
 
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';

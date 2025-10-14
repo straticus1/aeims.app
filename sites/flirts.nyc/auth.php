@@ -36,29 +36,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $foundCustomer = $dataLayer->getCustomer($username);
 
                 if ($foundCustomer && password_verify($password, $foundCustomer['password_hash'])) {
-                        // Check if customer is authorized for this site
-                        if (in_array('flirts.nyc', $foundCustomer['sites'] ?? [])) {
-                            // SECURITY FIX: Regenerate session to prevent session fixation
-                            $security->regenerateSessionOnLogin();
+                    // Check if customer is authorized for this site
+                    if (in_array('flirts.nyc', $foundCustomer['sites'] ?? [])) {
+                        // SECURITY FIX: Regenerate session to prevent session fixation
+                        $security->regenerateSessionOnLogin();
 
-                            // Reset rate limit on success
-                            $security->resetRateLimit($ip, 'customer_login');
+                        // Reset rate limit on success
+                        $security->resetRateLimit($ip, 'customer_login');
 
-                            $_SESSION['customer_id'] = $foundCustomer['id'];
-                            $_SESSION['customer_username'] = $foundCustomer['username'];
-                            $_SESSION['customer_email'] = $foundCustomer['email'];
-                            header('Location: /dashboard.php');
-                            exit;
-                        } else {
-                            $_SESSION['auth_message'] = 'Account not authorized for this site';
-                            $_SESSION['auth_message_type'] = 'error';
-                        }
+                        $_SESSION['customer_id'] = $foundCustomer['id'];
+                        $_SESSION['customer_username'] = $foundCustomer['username'];
+                        $_SESSION['customer_email'] = $foundCustomer['email'];
+                        header('Location: /dashboard.php');
+                        exit;
                     } else {
-                        $_SESSION['auth_message'] = 'Invalid username or password';
+                        $_SESSION['auth_message'] = 'Account not authorized for this site';
                         $_SESSION['auth_message_type'] = 'error';
                     }
                 } else {
-                    $_SESSION['auth_message'] = 'Authentication system unavailable';
+                    $_SESSION['auth_message'] = 'Invalid username or password';
                     $_SESSION['auth_message_type'] = 'error';
                 }
             } else {
