@@ -1,0 +1,71 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - text: /var/www/html/sites/flirts.nyc/index.php on line 51
+  - text: "Deprecated: htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/sites/flirts.nyc/index.php on line 51"
+  - text: "\">"
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Flirts NYC" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e5]:
+        - list [ref=e6]:
+          - listitem [ref=e7]:
+            - link "🔍 Search" [ref=e8] [cursor=pointer]:
+              - /url: /search-operators.php
+          - listitem [ref=e9]:
+            - link "✉️ Messages" [ref=e10] [cursor=pointer]:
+              - /url: /messages.php
+          - listitem [ref=e11]:
+            - link "💬 Chat" [ref=e12] [cursor=pointer]:
+              - /url: /chat.php
+          - listitem [ref=e13]:
+            - link "📊 Activity" [ref=e14] [cursor=pointer]:
+              - /url: /activity-log.php
+          - listitem [ref=e15]:
+            - link "🚪 Logout" [ref=e16] [cursor=pointer]:
+              - /url: /logout.php
+      - generic [ref=e19]: 👤 flirtyuser
+  - main [ref=e20]:
+    - generic [ref=e22]:
+      - heading "Welcome Back, flirtyuser" [level=1] [ref=e23]
+      - paragraph [ref=e24]: Ready to flirt? Browse operators, check your messages, or start a conversation.
+      - generic [ref=e25]:
+        - link "Browse Operators" [ref=e26] [cursor=pointer]:
+          - /url: /search-operators.php
+        - link "Check Messages" [ref=e27] [cursor=pointer]:
+          - /url: /messages.php
+        - link "Start Chat" [ref=e28] [cursor=pointer]:
+          - /url: /chat.php
+    - generic [ref=e29]:
+      - heading "Why Flirts NYC" [level=2] [ref=e30]
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - heading "💳 Discrete Billing" [level=3] [ref=e33]
+          - paragraph [ref=e34]: Your privacy matters. All transactions appear discreetly on your statement with no obvious references.
+        - generic [ref=e35]:
+          - heading "📞 Anonymous Calling" [level=3] [ref=e36]
+          - paragraph [ref=e37]: Connect with complete privacy. Your personal information stays protected while you enjoy conversations.
+        - generic [ref=e38]:
+          - heading "⭐ Experienced Operators" [level=3] [ref=e39]
+          - paragraph [ref=e40]: Our professional operators are skilled in creating engaging, memorable experiences tailored to you.
+        - generic [ref=e41]:
+          - heading "🚀 State of the Art Platform" [level=3] [ref=e42]
+          - paragraph [ref=e43]: Cutting-edge technology ensures seamless connections, crystal-clear audio, and reliable service.
+        - generic [ref=e44]:
+          - heading "✨ Most Unique Features" [level=3] [ref=e45]
+          - paragraph [ref=e46]: Experience the industry's most innovative features designed to enhance your flirting experience.
+        - generic [ref=e47]:
+          - heading "🔒 After Dark Systems Network" [level=3] [ref=e48]
+          - paragraph [ref=e49]: Part of the trusted After Dark Systems network, ensuring quality, security, and professional service.
+      - link "Start Flirting" [ref=e51] [cursor=pointer]:
+        - /url: /dashboard.php
+  - contentinfo [ref=e52]:
+    - paragraph [ref=e53]: © 2024 Flirts NYC. All rights reserved.
+    - paragraph [ref=e54]:
+      - text: Part of the
+      - strong [ref=e55]: After Dark Systems
+      - text: Network
+    - paragraph [ref=e56]: Powered by AEIMS Platform - Secure, Discrete, Professional
+```

@@ -1,0 +1,70 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - text: /var/www/html/search-operators.php on line 130
+  - text: "Deprecated: htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/search-operators.php on line 130"
+  - text: "\">"
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Flirts NYC" [ref=e4] [cursor=pointer]:
+        - /url: /dashboard.php
+      - generic [ref=e5]:
+        - generic [ref=e6]: "Credits: $25.00"
+        - link "Back to Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: /dashboard.php
+        - link "Logout" [ref=e8] [cursor=pointer]:
+          - /url: /auth.php?action=logout
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - heading "Find Your Perfect Match" [level=1] [ref=e11]
+      - paragraph [ref=e12]: Advanced search for operators
+    - generic [ref=e13]:
+      - generic [ref=e15]:
+        - textbox "Search by name or interests..." [ref=e16]
+        - button "Search" [ref=e17] [cursor=pointer]
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e21]: Category
+            - combobox [ref=e22]:
+              - option "All Categories" [selected]
+              - option "Girlfriend Experience"
+              - option "Roleplay"
+              - option "Domination"
+              - option "Fetish"
+          - generic [ref=e23]:
+            - generic [ref=e24]: Sort By
+            - combobox [ref=e25]:
+              - option "Highest Rated" [selected]
+              - option "Lowest Price"
+              - option "Newest First"
+          - generic [ref=e26]:
+            - generic [ref=e27]: Min Price ($/min)
+            - spinbutton [ref=e28]
+          - generic [ref=e29]:
+            - generic [ref=e30]: Max Price ($/min)
+            - spinbutton [ref=e31]
+        - generic [ref=e32]:
+          - generic [ref=e33]: Services
+          - generic [ref=e34]:
+            - generic [ref=e35] [cursor=pointer]:
+              - checkbox "Calls" [ref=e36]
+              - generic [ref=e37]: Calls
+            - generic [ref=e38] [cursor=pointer]:
+              - checkbox "Chat" [ref=e39]
+              - generic [ref=e40]: Chat
+            - generic [ref=e41] [cursor=pointer]:
+              - checkbox "Video" [ref=e42]
+              - generic [ref=e43]: Video
+            - generic [ref=e44] [cursor=pointer]:
+              - checkbox "Cam" [ref=e45]
+              - generic [ref=e46]: Cam
+        - button "Apply Filters" [ref=e47] [cursor=pointer]
+    - generic [ref=e49]: Found 0 operators
+    - generic [ref=e50]:
+      - heading "No Operators Found" [level=3] [ref=e51]
+      - paragraph [ref=e52]: Try adjusting your search filters or browse all operators.
+      - link "View All Operators" [ref=e53] [cursor=pointer]:
+        - /url: /dashboard.php
+```

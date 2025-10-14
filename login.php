@@ -1,7 +1,18 @@
 <?php
 /**
  * AEIMS Login - Routes to site-specific login pages
+ * SECURITY UPDATED: Session fixation, CSRF, rate limiting, safe redirects
  */
+
+// Load security manager
+require_once __DIR__ . '/includes/SecurityManager.php';
+$security = SecurityManager::getInstance();
+
+// Initialize secure session with proper cookie parameters
+$security->initializeSecureSession();
+
+// Apply security headers
+$security->applySecurityHeaders();
 
 // Virtual Host Routing - delegate to site-specific login
 $host = $_SERVER['HTTP_HOST'] ?? '';
@@ -17,11 +28,6 @@ if ($host === 'nycflirts.com' && file_exists(__DIR__ . '/sites/nycflirts.com/log
     exit;
 }
 
-// Default: AEIMS admin/customer login
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // Check if already logged in
 if (isset($_SESSION['user_id'])) {
     header('Location: dashboard.php');
@@ -33,15 +39,20 @@ $error_message = '';
 
 // Handle login submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // SECURITY FIX: CSRF Protection
+    verify_csrf();
+
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
     if (empty($username) || empty($password)) {
         $error_message = 'Please enter both username and password.';
     } else {
-        // Check if account is locked
-        if (isAccountLocked($username)) {
-            $error_message = 'Account temporarily locked due to multiple failed login attempts. Please try again in 15 minutes.';
+        // SECURITY FIX: Rate limiting by IP
+        $ip = $_SERVER['REMOTE_ADDR'];
+
+        if (!$security->checkRateLimit($ip, 'login', 5, 300)) {
+            $error_message = 'Too many login attempts from your IP address. Please try again in 5 minutes.';
         } else {
             // Load user accounts
             $accounts = loadUserAccounts();
@@ -49,8 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (validateLogin($username, $password, $accounts)) {
                 $user = $accounts[$username];
 
-                // Reset failed attempts on successful login
-                resetFailedAttempts($username);
+                // SECURITY FIX: Regenerate session ID to prevent session fixation
+                $security->regenerateSessionOnLogin();
+
+                // Reset rate limit on successful login
+                $security->resetRateLimit($ip, 'login');
 
                 // Set session variables
                 $_SESSION['user_id'] = $user['id'];
@@ -62,32 +76,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Log successful attempt
                 logLoginAttempt($username, true);
 
-                // Check for return URL first
+                // SECURITY FIX: Safe redirect validation
                 $returnUrl = $_POST['return_url'] ?? $_GET['return_url'] ?? '';
 
                 if (!empty($returnUrl) && $returnUrl !== '/') {
-                    // Validate return URL is safe (same domain or relative)
-                    if (strpos($returnUrl, '/') === 0 || strpos($returnUrl, 'sexacomms.com') !== false) {
-                        header('Location: ' . $returnUrl);
-                        exit();
-                    }
+                    $security->safeRedirect($returnUrl, '/dashboard.php');
                 }
 
                 // Default redirect based on user type
                 if ($user['type'] === 'admin') {
-                    header('Location: admin-dashboard.php');
+                    $security->safeRedirect('/admin-dashboard.php');
                 } else {
-                    header('Location: dashboard.php');
+                    $security->safeRedirect('/dashboard.php');
                 }
-                exit();
             } else {
                 // Track failed attempt
                 $attempts = trackFailedAttempt($username);
+                $remaining = $security->getRemainingAttempts($ip, 'login', 5);
 
-                if ($attempts >= 5) {
-                    $error_message = 'Too many failed login attempts. Account locked for 15 minutes.';
+                if ($attempts >= 5 || $remaining <= 0) {
+                    $error_message = 'Too many failed login attempts. Please try again in 5 minutes.';
                 } else {
-                    $remaining = 5 - $attempts;
                     $error_message = "Invalid username or password. $remaining attempts remaining.";
                 }
 
@@ -100,8 +109,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /**
  * Load user accounts from secure file
+ * SECURITY FIX: Using safe file operations with locking
  */
 function loadUserAccounts() {
+    global $security;
     $accountsFile = __DIR__ . '/data/accounts.json';
 
     // Create default accounts if file doesn't exist
@@ -131,16 +142,13 @@ function loadUserAccounts() {
             ]
         ];
 
-        $dataDir = dirname($accountsFile);
-        if (!is_dir($dataDir)) {
-            mkdir($dataDir, 0755, true);
-        }
-
-        file_put_contents($accountsFile, json_encode($defaultAccounts, JSON_PRETTY_PRINT));
+        // SECURITY FIX: Use safe file write with locking
+        $security->safeJSONWrite($accountsFile, $defaultAccounts);
         return $defaultAccounts;
     }
 
-    return json_decode(file_get_contents($accountsFile), true) ?? [];
+    // SECURITY FIX: Use safe file read with locking
+    return $security->safeJSONRead($accountsFile) ?? [];
 }
 
 /**
@@ -289,8 +297,19 @@ function logLoginAttempt($username, $success) {
                     <h1 class="login-logo"><?php echo $config['site']['name']; ?></h1>
                     <span class="login-subtitle"><?php echo $config['site']['company']; ?></span>
                 </a>
-                <h2>Customer Login</h2>
-                <p>Access your AEIMS management dashboard</p>
+
+                <!-- Login Type Toggle -->
+                <div class="login-type-toggle" style="display: flex; gap: 10px; justify-content: center; margin: 20px 0 10px;">
+                    <button type="button" class="toggle-btn active" onclick="switchLoginType('customer')" id="customerToggle">
+                        👥 Customer Login
+                    </button>
+                    <button type="button" class="toggle-btn" onclick="switchLoginType('agent')" id="agentToggle">
+                        🎧 Agent / Operator Login
+                    </button>
+                </div>
+
+                <h2 id="loginTitle">Customer Login</h2>
+                <p id="loginSubtitle">Access your AEIMS management dashboard</p>
             </div>
 
             <?php if ($error_message): ?>
@@ -301,6 +320,8 @@ function logLoginAttempt($username, $success) {
             <?php endif; ?>
 
             <form class="login-form" method="POST" action="">
+                <?php echo csrf_field(); ?>
+
                 <div class="form-group">
                     <label for="username">Email or Username</label>
                     <input
@@ -416,5 +437,62 @@ function logLoginAttempt($username, $success) {
     </div>
 
     <script src="assets/js/login.js"></script>
+    <style>
+        .toggle-btn {
+            padding: 10px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        #agentInfo {
+            display: none;
+        }
+    </style>
+    <script>
+        function switchLoginType(type) {
+            const customerToggle = document.getElementById('customerToggle');
+            const agentToggle = document.getElementById('agentToggle');
+            const loginTitle = document.getElementById('loginTitle');
+            const loginSubtitle = document.getElementById('loginSubtitle');
+
+            if (type === 'customer') {
+                // Switch to customer mode
+                customerToggle.classList.add('active');
+                agentToggle.classList.remove('active');
+                loginTitle.textContent = 'Customer Login';
+                loginSubtitle.textContent = 'Access your AEIMS management dashboard';
+            } else {
+                // Redirect to agent login page
+                window.location.href = 'agents/login.php';
+            }
+        }
+
+        // Add keyboard shortcut: Alt+A for agent login
+        document.addEventListener('keydown', function(e) {
+            if (e.altKey && e.key === 'a') {
+                switchLoginType('agent');
+            }
+        });
+    </script>
 </body>
 </html>

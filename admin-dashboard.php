@@ -2,10 +2,32 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
-    header('Location: login.php');
+
+// Support both old auth system and new operator auth system
+$isLoggedIn = false;
+$username = '';
+$userType = '';
+$loginTime = time();
+
+if (isset($_SESSION['operator_id']) && isset($_SESSION['operator_username'])) {
+    // New operator auth system
+    $isLoggedIn = true;
+    $username = $_SESSION['operator_username'];
+    $userType = 'Operator';
+    $loginTime = $_SESSION['operator_login_time'] ?? time();
+} elseif (isset($_SESSION['user_id']) && $_SESSION['user_type'] === 'admin') {
+    // Old auth system
+    $isLoggedIn = true;
+    $username = $_SESSION['username'];
+    $userType = 'Admin';
+    $loginTime = $_SESSION['login_time'] ?? time();
+}
+
+if (!$isLoggedIn) {
+    header('Location: agents/login.php');
     exit();
 }
+
 $config = include __DIR__ . '/config.php';
 if (!is_array($config)) {
     $config = ['site' => ['name' => 'AEIMS']];
@@ -80,16 +102,16 @@ if (!is_array($config)) {
 <body>
     <div class="container">
         <h1>Admin Dashboard</h1>
-        <p class="welcome">Welcome back, <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong></p>
+        <p class="welcome">Welcome back, <strong><?php echo htmlspecialchars($username); ?></strong></p>
 
         <div class="info-grid">
             <div class="info-card">
                 <h3>User Type</h3>
-                <p><?php echo htmlspecialchars(ucfirst($_SESSION['user_type'])); ?></p>
+                <p><?php echo htmlspecialchars($userType); ?></p>
             </div>
             <div class="info-card">
                 <h3>Login Time</h3>
-                <p><?php echo date('H:i', $_SESSION['login_time']); ?></p>
+                <p><?php echo date('H:i', $loginTime); ?></p>
             </div>
             <div class="info-card">
                 <h3>Status</h3>
@@ -98,8 +120,10 @@ if (!is_array($config)) {
         </div>
 
         <div style="margin-top: 2rem;">
-            <a href="auth.php" class="btn">View Auth Status</a>
-            <a href="logout.php" class="btn btn-secondary">Logout</a>
+            <a href="admin/stats.php" class="btn">📊 Comprehensive Stats Dashboard</a>
+            <a href="agents/dashboard.php" class="btn">Operator Dashboard</a>
+            <a href="analytics.php" class="btn">System Analytics</a>
+            <a href="agents/login.php?logout=1" class="btn btn-secondary">Logout</a>
         </div>
     </div>
 </body>

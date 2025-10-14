@@ -1,0 +1,55 @@
+{
+    "codes": {
+        "VERIFY-605A7E1F": {
+            "code": "VERIFY-605A7E1F",
+            "generated_by": "system_admin",
+            "generated_at": "2025-10-12 09:33:57",
+            "expires_at": null,
+            "used": true,
+            "used_by": "op_68eb76056f6e9",
+            "used_at": "2025-10-12 09:33:57",
+            "notes": "Test operator for nycflirts.com"
+        },
+        "VERIFY-605E0E19": {
+            "code": "VERIFY-605E0E19",
+            "generated_by": "system_admin",
+            "generated_at": "2025-10-12 09:33:57",
+            "expires_at": null,
+            "used": true,
+            "used_by": "op_68eb7605a82d3",
+            "used_at": "2025-10-12 09:33:57",
+            "notes": "Test operator for nycflirts.com"
+        },
+        "VERIFY-6062A277": {
+            "code": "VERIFY-6062A277",
+            "generated_by": "system_admin",
+            "generated_at": "2025-10-12 09:33:58",
+            "expires_at": null,
+            "used": true,
+            "used_by": "op_68eb7605e1318",
+            "used_at": "2025-10-12 09:33:58",
+            "notes": "Test operator for flirts.nyc"
+        },
+        "VERIFY-60666973": {
+            "code": "VERIFY-60666973",
+            "generated_by": "system_admin",
+            "generated_at": "2025-10-12 09:33:58",
+            "expires_at": null,
+            "used": true,
+            "used_by": "op_68eb76062a6e0",
+            "used_at": "2025-10-12 09:33:58",
+            "notes": "Test operator for flirts.nyc"
+        },
+        "VERIFY-6069DE80": {
+            "code": "VERIFY-6069DE80",
+            "generated_by": "system_admin",
+            "generated_at": "2025-10-12 09:33:58",
+            "expires_at": null,
+            "used": true,
+            "used_by": "op_68eb760666e3d",
+            "used_at": "2025-10-12 09:33:58",
+            "notes": "Test operator for nycflirts.com"
+        }
+    },
+    "last_updated": "2025-10-12 09:33:58"
+}

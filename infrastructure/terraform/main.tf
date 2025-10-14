@@ -1047,7 +1047,7 @@ resource "aws_ecs_task_definition" "aeims_app" {
   container_definitions = jsonencode([
     {
       name      = "aeims"
-      image     = "515966511618.dkr.ecr.us-east-1.amazonaws.com/afterdarksys/aeims:latest"
+      image     = "515966511618.dkr.ecr.us-east-1.amazonaws.com/aeims:latest"
       essential = true
       portMappings = [
         {

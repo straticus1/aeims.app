@@ -1,0 +1,115 @@
+{
+    "activities": [
+        {
+            "id": "act_001",
+            "customer_id": "cust_flirts001",
+            "activity_type": "login",
+            "timestamp": "2024-10-08 13:00:00",
+            "data": {
+                "ip": "127.0.0.1",
+                "user_agent": "Mozilla\/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+            }
+        },
+        {
+            "id": "act_002",
+            "customer_id": "cust_nyc001",
+            "activity_type": "login",
+            "timestamp": "2024-10-08 14:30:00",
+            "data": {
+                "ip": "127.0.0.1",
+                "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64)"
+            }
+        },
+        {
+            "id": "act_003",
+            "customer_id": "cust_flirts001",
+            "activity_type": "message_sent",
+            "timestamp": "2024-10-08 13:15:00",
+            "data": {
+                "message_count": 5,
+                "credits_used": 2.5
+            }
+        }
+    ],
+    "last_updated": "2024-10-08 13:30:00",
+    "0": {
+        "timestamp": "2025-10-13T00:30:22+00:00",
+        "customer_id": "cust_flirts001",
+        "action": "login",
+        "site": "flirts.nyc",
+        "ip": "unknown",
+        "data": []
+    },
+    "1": {
+        "timestamp": "2025-10-13T00:30:22+00:00",
+        "customer_id": "cust_nyc001",
+        "action": "login",
+        "site": "nycflirts.com",
+        "ip": "unknown",
+        "data": []
+    },
+    "2": {
+        "timestamp": "2025-10-13T00:30:23+00:00",
+        "customer_id": "cust_cross001",
+        "action": "login",
+        "site": "flirts.nyc",
+        "ip": "unknown",
+        "data": []
+    },
+    "3": {
+        "timestamp": "2025-10-13T00:30:24+00:00",
+        "customer_id": "cust_cross001",
+        "action": "login",
+        "site": "nycflirts.com",
+        "ip": "unknown",
+        "data": []
+    },
+    "4": {
+        "timestamp": "2025-10-13T00:32:11+00:00",
+        "customer_id": "cust_flirts001",
+        "action": "login",
+        "site": "flirts.nyc",
+        "ip": "unknown",
+        "data": []
+    },
+    "5": {
+        "timestamp": "2025-10-13T00:32:12+00:00",
+        "customer_id": "cust_cross001",
+        "action": "login",
+        "site": "flirts.nyc",
+        "ip": "unknown",
+        "data": []
+    },
+    "6": {
+        "timestamp": "2025-10-13T00:32:14+00:00",
+        "customer_id": "cust_nyc001",
+        "action": "login",
+        "site": "nycflirts.com",
+        "ip": "unknown",
+        "data": []
+    },
+    "7": {
+        "timestamp": "2025-10-13T00:32:15+00:00",
+        "customer_id": "cust_cross001",
+        "action": "login",
+        "site": "nycflirts.com",
+        "ip": "unknown",
+        "data": []
+    },
+    "8": {
+        "timestamp": "2025-10-13T00:32:17+00:00",
+        "customer_id": "cust_nycfun25",
+        "action": "login",
+        "site": "nycflirts.com",
+        "ip": "unknown",
+        "data": []
+    },
+    "9": {
+        "timestamp": "2025-10-13T08:47:42+00:00",
+        "customer_id": "cust_flirts001",
+        "action": "login",
+        "site": "flirts.nyc",
+        "ip": "::1",
+        "data": []
+    }
+}

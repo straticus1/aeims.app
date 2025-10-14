@@ -1,17 +1,19 @@
-# AEIMS Showcase Website v2.0
+# AEIMS Platform v2.3.0
 
-A modern, responsive website showcasing the Adult Entertainment Information Management System (AEIMS) by After Dark Systems, featuring an integrated agent management system and comprehensive legal compliance.
+A comprehensive adult entertainment platform management system by After Dark Systems, featuring complete multi-site infrastructure, advanced authentication, content marketplace, and production-ready deployment capabilities.
 
 ## Features
 
-- **Modern Design**: Responsive, mobile-first design with dark theme
-- **Interactive Elements**: Animated statistics, smooth scrolling, and dynamic pricing tabs
-- **Contact Form**: Functional PHP contact form with validation and email notifications
-- **Agent Management**: Complete operator/agent dashboard with authentication
-- **Legal Compliance**: Comprehensive legal documentation and terms
-- **Showcase**: Comprehensive feature overview and site portfolio
-- **Pricing**: Flexible licensing options with clear pricing tiers
-- **Infrastructure**: Terraform-based deployment automation
+- **Multi-Site Infrastructure**: Complete virtual host support with nginx routing and container orchestration
+- **Enhanced Site Management**: Individual site configurations with dedicated authentication and SSO middleware
+- **Robust Authentication**: Unified customer and operator authentication with role-based access control
+- **Content & Communication**: Content marketplace, messaging, room-based chat, and operator booking systems
+- **ID Verification**: Complete identity verification workflow with document handling
+- **Advanced Testing**: Playwright-based security tests with automated validation
+- **Production Ready**: Docker containerization with SSL/TLS management and monitoring
+- **Dashboard Systems**: Comprehensive admin and site-specific dashboards with resolved rendering issues
+- **Modern Design**: Responsive, mobile-first design with dark theme and interactive elements
+- **Legal Compliance**: Comprehensive legal documentation and regulatory compliance
 
 ## Technologies Used
 
@@ -25,32 +27,54 @@ A modern, responsive website showcasing the Adult Entertainment Information Mana
 
 ```
 aeims.app/
-├── index.php               # Main website page (updated to PHP)
-├── legal.php               # Legal compliance and terms page
-├── contact-handler.php     # Contact form processing
+├── index.php               # Main platform entry point
+├── admin-dashboard.php     # Administrative dashboard
+├── router.php              # Multi-site routing system
+├── config.php              # Main platform configuration
 ├── CHANGELOG.md            # Version history and changes
 ├── README.md               # This file
 ├── agents/                 # Agent management system
-│   ├── index.php          # Agent portal entry point
-│   ├── login.php          # Secure agent authentication
-│   ├── dashboard.php      # Agent dashboard interface
-│   ├── config.php         # Agent system configuration
-│   ├── cookies.txt        # Session data storage
-│   ├── data/
-│   │   └── operators.json # Operator/agent data storage
-│   └── includes/
-│       └── OperatorAuth.php # Authentication handling
-├── infrastructure/         # Deployment automation
-│   └── terraform/         # Infrastructure as Code
-│       ├── main.tf        # Main infrastructure configuration
-│       └── dns-only.tf    # DNS-only deployment option
+│   ├── login.php          # Agent authentication
+│   ├── dashboard.php      # Agent dashboard (fixed rendering issues)
+│   ├── data/operators.json # Operator data storage
+│   └── includes/OperatorAuth.php # Authentication handling
+├── sites/                  # Multi-site management
+│   ├── flirts.nyc/        # Site-specific implementation
+│   │   ├── index.php      # Site entry point
+│   │   ├── auth.php       # Site authentication
+│   │   ├── chat.php       # Chat functionality
+│   │   ├── dashboard.php  # Site dashboard
+│   │   └── sso/           # Single Sign-On middleware
+│   ├── nycflirts.com/     # Additional site implementation
+│   └── sexacomms/         # Third site implementation
+├── services/               # Core platform services
+│   ├── MessagingManager.php      # Messaging system
+│   ├── SSOManager.php            # Single Sign-On management
+│   ├── ContentMarketplaceManager.php # Content marketplace
+│   ├── IDVerificationManager.php     # ID verification
+│   ├── NotificationManager.php       # Notification system
+│   └── ChatRoomManager.php           # Room-based chat
+├── data/                   # Platform data storage
+│   ├── accounts.json      # User accounts
+│   ├── messages.json      # Message data
+│   ├── chat_rooms.json    # Chat room management
+│   ├── content_items.json # Content marketplace items
+│   └── notifications.json # Notification data
+├── includes/               # Core system includes
+│   ├── Logger.php         # Logging system
+│   ├── SiteSpecificAuth.php # Site authentication
+│   └── CustomerAuth.php   # Customer authentication
+├── infrastructure/         # Production deployment
+│   ├── terraform/         # Infrastructure as Code
+│   ├── docker-compose.yml # Container orchestration
+│   └── docker/nginx.conf  # Nginx virtual host configuration
+├── tests/                  # Playwright testing suite
+├── security-tests/         # Security validation tests
 ├── assets/
-│   ├── css/
-│   │   └── style.css      # Enhanced stylesheet with agent styling
-│   ├── js/
-│   │   └── script.js      # Main JavaScript file
-│   └── images/            # Image assets (if needed)
-└── logs/                  # Contact form logs (auto-created)
+│   ├── css/style.css      # Enhanced platform styling
+│   └── js/                # JavaScript modules
+└── api/                    # API endpoints
+    └── notifications/     # Notification API
 ```
 
 ## Setup Instructions

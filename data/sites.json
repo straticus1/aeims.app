@@ -1,0 +1,103 @@
+{
+    "sites": {
+        "nycflirts_com": {
+            "site_id": "nycflirts_com",
+            "domain": "nycflirts.com",
+            "name": "NYC Flirts",
+            "description": "Premium NYC dating and entertainment service",
+            "template": "default",
+            "active": true,
+            "created_at": "2025-10-12 00:00:00",
+            "categories": ["dating", "chat", "video"],
+            "theme": {
+                "primary_color": "#e91e63",
+                "secondary_color": "#9c27b0",
+                "accent_color": "#ff4081"
+            },
+            "features": {
+                "video_chat": true,
+                "voice_calls": true,
+                "text_chat": true,
+                "operator_profiles": true,
+                "payment_processing": true
+            },
+            "billing": {
+                "per_minute_rate": 2.99,
+                "minimum_purchase": 10.00,
+                "currency": "USD"
+            },
+            "stats": {
+                "total_customers": 145,
+                "active_operators": 12,
+                "total_calls": 3847,
+                "total_revenue": 45678.50
+            }
+        },
+        "flirts_nyc": {
+            "site_id": "flirts_nyc",
+            "domain": "flirts.nyc",
+            "name": "Flirts NYC",
+            "description": "New York's hottest connections and entertainment",
+            "template": "default",
+            "active": true,
+            "created_at": "2025-10-12 00:00:00",
+            "categories": ["dating", "chat", "video"],
+            "theme": {
+                "primary_color": "#ff6b6b",
+                "secondary_color": "#4ecdc4",
+                "accent_color": "#ffe66d"
+            },
+            "features": {
+                "video_chat": true,
+                "voice_calls": true,
+                "text_chat": true,
+                "operator_profiles": true,
+                "payment_processing": true
+            },
+            "billing": {
+                "per_minute_rate": 2.99,
+                "minimum_purchase": 10.00,
+                "currency": "USD"
+            },
+            "stats": {
+                "total_customers": 98,
+                "active_operators": 8,
+                "total_calls": 2156,
+                "total_revenue": 28934.75
+            }
+        },
+        "sexacomms_com": {
+            "site_id": "sexacomms_com",
+            "domain": "sexacomms.com",
+            "name": "SexaComms",
+            "description": "Adult communication platform for operators",
+            "template": "operator",
+            "active": true,
+            "created_at": "2025-10-12 00:00:00",
+            "categories": ["operator", "dashboard", "admin"],
+            "theme": {
+                "primary_color": "#2c3e50",
+                "secondary_color": "#e74c3c",
+                "accent_color": "#3498db"
+            },
+            "features": {
+                "video_chat": true,
+                "voice_calls": true,
+                "text_chat": true,
+                "operator_profiles": true,
+                "operator_dashboard": true,
+                "earnings_tracking": true
+            },
+            "billing": {
+                "operator_commission": 0.60,
+                "currency": "USD"
+            },
+            "stats": {
+                "total_operators": 85,
+                "active_sites": 10,
+                "total_revenue": 125000.00
+            }
+        }
+    },
+    "last_updated": "2025-10-12 13:30:00"
+}

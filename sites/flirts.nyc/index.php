@@ -7,11 +7,11 @@
 session_start();
 
 // Load SSO middleware first
-require_once 'sso/middleware.php';
+require_once __DIR__ . '/sso/middleware.php';
 
 // Load site configuration
-require_once '../../services/SiteManager.php';
-require_once '../../services/OperatorManager.php';
+require_once __DIR__ . '/../../services/SiteManager.php';
+require_once __DIR__ . '/../../services/OperatorManager.php';
 
 // Check for SSO auto-login
 checkSSOSession();
@@ -49,6 +49,9 @@ $currentCustomer = $isLoggedIn ? $_SESSION['customer_data'] : null;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($site['name']) ?> - Premium Adult Entertainment</title>
     <link rel="icon" href="<?= htmlspecialchars($site['theme']['favicon_url']) ?>">
+    <?php if ($isLoggedIn): ?>
+    <script src="/assets/js/notifications.js"></script>
+    <?php endif; ?>
 
     <style>
         * {
@@ -60,7 +63,7 @@ $currentCustomer = $isLoggedIn ? $_SESSION['customer_data'] : null;
         body {
             font-family: <?= $site['theme']['font_family'] ?>;
             background: linear-gradient(135deg, #1a1a1a 0%, #2d1b3d 100%);
-            color: <?= $site['theme']['text_color'] ?>;
+            color: #ffffff;
             min-height: 100vh;
         }
 
@@ -98,9 +101,11 @@ $currentCustomer = $isLoggedIn ? $_SESSION['customer_data'] : null;
         }
 
         .nav-menu a {
-            color: <?= $site['theme']['text_color'] ?>;
+            color: #ffffff;
             text-decoration: none;
             transition: color 0.3s ease;
+            font-weight: 500;
+            font-size: 1rem;
         }
 
         .nav-menu a:hover {
@@ -314,18 +319,36 @@ $currentCustomer = $isLoggedIn ? $_SESSION['customer_data'] : null;
     </style>
 </head>
 <body>
+    <?php
+    // Display authentication messages if any
+    $authMessage = $_SESSION['auth_message'] ?? null;
+    $authMessageType = $_SESSION['auth_message_type'] ?? 'info';
+
+    if ($authMessage) {
+        unset($_SESSION['auth_message']);
+        unset($_SESSION['auth_message_type']);
+        $alertColor = $authMessageType === 'error' ? '#ef4444' : '#10b981';
+        echo "<div style='position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 3000; background: rgba(0,0,0,0.95); color: $alertColor; padding: 1rem 2rem; border-radius: 10px; border: 1px solid $alertColor; box-shadow: 0 4px 6px rgba(0,0,0,0.3);'>" . htmlspecialchars($authMessage) . "</div>";
+        echo "<script>setTimeout(() => { const alert = document.querySelector('div[style*=\"position: fixed\"]'); if(alert) alert.remove(); }, 5000); " . ($authMessageType === 'error' ? "window.addEventListener('DOMContentLoaded', () => openLoginModal());" : "") . "</script>";
+    }
+    ?>
+
     <header class="header">
         <div class="nav-container">
             <a href="/" class="logo"><?= htmlspecialchars($site['name']) ?></a>
 
             <nav>
                 <ul class="nav-menu">
-                    <li><a href="#about">About Us</a></li>
                     <?php if ($isLoggedIn): ?>
-                        <li><a href="/dashboard.php">Dashboard</a></li>
-                        <li><a href="/logout.php">Logout</a></li>
+                        <li><a href="/search-operators.php">🔍 Search</a></li>
+                        <li><a href="/messages.php">✉️ Messages</a></li>
+                        <li><a href="/chat.php">💬 Chat</a></li>
+                        <li><a href="/rooms.php">🏠 Rooms</a></li>
+                        <li><a href="/activity-log.php">📊 Activity</a></li>
+                        <li><a href="/settings.php">⚙️ Settings</a></li>
+                        <li><a href="/logout.php">🚪 Logout</a></li>
                     <?php else: ?>
-                        <li><a href="#" onclick="openLoginModal()">Sign In</a></li>
+                        <li><a href="#about">About Us</a></li>
                     <?php endif; ?>
                 </ul>
             </nav>
@@ -333,12 +356,11 @@ $currentCustomer = $isLoggedIn ? $_SESSION['customer_data'] : null;
             <div class="auth-buttons">
                 <?php if ($isLoggedIn): ?>
                     <div class="user-profile">
-                        <span>Welcome, <?= htmlspecialchars($currentCustomer['username']) ?></span>
-                        <a href="/dashboard.php" class="btn btn-primary">Enter</a>
+                        <span>👤 <?= htmlspecialchars($currentCustomer['username']) ?></span>
                     </div>
                 <?php else: ?>
-                    <button class="btn btn-secondary" onclick="openLoginModal()">Sign In</button>
-                    <button class="btn btn-primary" onclick="openSignupModal()">Join Now</button>
+                    <a href="/login.php" class="btn btn-secondary">Sign In</a>
+                    <a href="/register.php" class="btn btn-primary">Join Now</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -347,12 +369,18 @@ $currentCustomer = $isLoggedIn ? $_SESSION['customer_data'] : null;
     <main>
         <section class="hero">
             <div class="hero-content">
-                <h1>Welcome to Flirts NYC</h1>
-                <p>Are you ready to start flirting? Find your flirt, find them now. On flirts.nyc.</p>
-                <?php if (!$isLoggedIn): ?>
-                    <button class="btn btn-primary" onclick="openSignupModal()">Start Flirting Now</button>
+                <?php if ($isLoggedIn): ?>
+                    <h1>Welcome Back, <?= htmlspecialchars($currentCustomer['username']) ?></h1>
+                    <p>Ready to flirt? Browse operators, check your messages, or start a conversation.</p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                        <a href="/search-operators.php" class="btn btn-primary">Browse Operators</a>
+                        <a href="/messages.php" class="btn btn-secondary" style="border-color: #fff; color: #fff;">Check Messages</a>
+                        <a href="/chat.php" class="btn btn-secondary" style="border-color: #fff; color: #fff;">Start Chat</a>
+                    </div>
                 <?php else: ?>
-                    <a href="/dashboard.php" class="btn btn-primary">Enter Flirts NYC</a>
+                    <h1>Welcome to Flirts NYC</h1>
+                    <p>Are you ready to start flirting? Find your flirt, find them now. On flirts.nyc.</p>
+                    <button class="btn btn-primary" onclick="openSignupModal()">Start Flirting Now</button>
                 <?php endif; ?>
             </div>
         </section>

@@ -1,0 +1,65 @@
+{
+    "verifications": {
+        "verify_68eb7605a7fc7": {
+            "verification_id": "verify_68eb7605a7fc7",
+            "operator_id": "op_68eb76056f6e9",
+            "status": "override",
+            "verification_code": "VERIFY-605A7E1F",
+            "documents": [],
+            "notes": "Verified with override code: VERIFY-605A7E1F",
+            "created_at": "2025-10-12 09:33:57",
+            "updated_at": "2025-10-12 09:33:57",
+            "reviewed_by": "system_override",
+            "reviewed_at": "2025-10-12 09:33:57"
+        },
+        "verify_68eb7605e103d": {
+            "verification_id": "verify_68eb7605e103d",
+            "operator_id": "op_68eb7605a82d3",
+            "status": "override",
+            "verification_code": "VERIFY-605E0E19",
+            "documents": [],
+            "notes": "Verified with override code: VERIFY-605E0E19",
+            "created_at": "2025-10-12 09:33:57",
+            "updated_at": "2025-10-12 09:33:57",
+            "reviewed_by": "system_override",
+            "reviewed_at": "2025-10-12 09:33:57"
+        },
+        "verify_68eb76062a410": {
+            "verification_id": "verify_68eb76062a410",
+            "operator_id": "op_68eb7605e1318",
+            "status": "override",
+            "verification_code": "VERIFY-6062A277",
+            "documents": [],
+            "notes": "Verified with override code: VERIFY-6062A277",
+            "created_at": "2025-10-12 09:33:58",
+            "updated_at": "2025-10-12 09:33:58",
+            "reviewed_by": "system_override",
+            "reviewed_at": "2025-10-12 09:33:58"
+        },
+        "verify_68eb760666b2f": {
+            "verification_id": "verify_68eb760666b2f",
+            "operator_id": "op_68eb76062a6e0",
+            "status": "override",
+            "verification_code": "VERIFY-60666973",
+            "documents": [],
+            "notes": "Verified with override code: VERIFY-60666973",
+            "created_at": "2025-10-12 09:33:58",
+            "updated_at": "2025-10-12 09:33:58",
+            "reviewed_by": "system_override",
+            "reviewed_at": "2025-10-12 09:33:58"
+        },
+        "verify_68eb76069e0c5": {
+            "verification_id": "verify_68eb76069e0c5",
+            "operator_id": "op_68eb760666e3d",
+            "status": "override",
+            "verification_code": "VERIFY-6069DE80",
+            "documents": [],
+            "notes": "Verified with override code: VERIFY-6069DE80",
+            "created_at": "2025-10-12 09:33:58",
+            "updated_at": "2025-10-12 09:33:58",
+            "reviewed_by": "system_override",
+            "reviewed_at": "2025-10-12 09:33:58"
+        }
+    },
+    "last_updated": "2025-10-12 09:33:58"
+}

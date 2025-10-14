@@ -1,0 +1,14 @@
+{
+    "demo@example.com": {
+        "attempts": 1,
+        "first_attempt": 1760349850,
+        "locked_at": null,
+        "last_attempt": 1760349850
+    },
+    "nycdiamond": {
+        "attempts": 1,
+        "first_attempt": 1760349999,
+        "locked_at": null,
+        "last_attempt": 1760349999
+    }
+}

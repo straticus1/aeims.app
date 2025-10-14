@@ -1,0 +1,34 @@
+{
+  "name": "aeims.app",
+  "version": "1.0.0",
+  "description": "A modern, responsive website showcasing the Adult Entertainment Information Management System (AEIMS) by After Dark Systems, featuring an integrated agent management system and comprehensive legal compliance.",
+  "main": "enhanced-bounce-processor.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:customer": "playwright test tests/customer-flow.spec.ts",
+    "test:operator": "playwright test tests/operator-flow.spec.ts",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/straticus1/aeims.app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/straticus1/aeims.app/issues"
+  },
+  "homepage": "https://github.com/straticus1/aeims.app#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^24.7.2",
+    "typescript": "^5.9.3"
+  }
+}

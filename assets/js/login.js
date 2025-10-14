@@ -185,10 +185,10 @@ function populateCredentialsDemo() {
             // Extract credentials from demo account text
             if (text.includes('demo@example.com')) {
                 username = 'demo@example.com';
-                password = 'demo123';
+                password = 'password123';
             } else if (text.includes('admin')) {
                 username = 'admin';
-                password = 'AEIMSAdmin2024!SecurePass';
+                password = 'admin123';
             }
 
             if (username && password) {
@@ -286,7 +286,7 @@ document.addEventListener('keydown', function(e) {
     if (e.altKey && e.key === 'd') {
         e.preventDefault();
         document.getElementById('username').value = 'demo@example.com';
-        document.getElementById('password').value = 'demo123';
+        document.getElementById('password').value = 'password123';
         showLoginNotification('Demo customer credentials loaded (Alt+D)', 'info');
     }
 
@@ -294,7 +294,7 @@ document.addEventListener('keydown', function(e) {
     if (e.altKey && e.key === 'a') {
         e.preventDefault();
         document.getElementById('username').value = 'admin';
-        document.getElementById('password').value = 'AEIMSAdmin2024!SecurePass';
+        document.getElementById('password').value = 'admin123';
         showLoginNotification('Admin credentials loaded (Alt+A)', 'info');
     }
 });
@@ -372,4 +372,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 console.log('%c🔐 AEIMS Login System', 'color: #6366f1; font-size: 16px; font-weight: bold;');
 console.log('%cKeyboard shortcuts: Alt+D (demo), Alt+A (admin)', 'color: #a1a1aa; font-size: 12px;');
-console.log('%cAdmin Password: AEIMSAdmin2024!SecurePass', 'color: #ef4444; font-size: 12px; font-weight: bold;');
+console.log('%cAdmin: admin / admin123 | Demo: demo@example.com / password123', 'color: #ef4444; font-size: 12px; font-weight: bold;');

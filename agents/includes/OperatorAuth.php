@@ -9,16 +9,35 @@ class OperatorAuth {
     private $aeimsIntegration;
     
     public function __construct() {
-        session_start();
-        $this->config = include dirname(__DIR__) . '/config.php';
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $configPath = dirname(__DIR__) . '/../config.php';
+        if (!file_exists($configPath)) {
+            error_log("OperatorAuth: Config file not found at: " . $configPath);
+            $this->config = ['domains' => [], 'portal' => ['name' => 'AEIMS Agents']];
+        } else {
+            $this->config = include $configPath;
+            if (!is_array($this->config)) {
+                error_log("OperatorAuth: Config did not return array");
+                $this->config = ['domains' => [], 'portal' => ['name' => 'AEIMS Agents']];
+            }
+        }
         
         // Include AEIMS integration from parent directory
-        require_once dirname(dirname(__DIR__)) . '/includes/AeimsIntegration.php';
-        
-        try {
-            $this->aeimsIntegration = new AeimsIntegration();
-        } catch (Exception $e) {
-            error_log("AEIMS integration failed in OperatorAuth: " . $e->getMessage());
+        $aeimsPath = dirname(dirname(__DIR__)) . '/includes/AeimsIntegration.php';
+        if (file_exists($aeimsPath)) {
+            require_once $aeimsPath;
+
+            try {
+                $this->aeimsIntegration = new AeimsIntegration();
+            } catch (Exception $e) {
+                error_log("AEIMS integration failed in OperatorAuth: " . $e->getMessage());
+                $this->aeimsIntegration = null;
+            }
+        } else {
+            error_log("OperatorAuth: AeimsIntegration.php not found at: " . $aeimsPath);
             $this->aeimsIntegration = null;
         }
     }

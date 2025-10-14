@@ -4,19 +4,24 @@
 // Virtual Host Routing (quick fix)
 $host = $_SERVER['HTTP_HOST'] ?? '';
 switch (true) {
-    case ($host === 'sexacomms.com' || $host === 'www.sexacomms.com' || $host === 'login.sexacomms.com'):
-        // Admin interface
-        require_once 'sites/sexacomms/index.php';
+    case ($host === 'login.sexacomms.com'):
+        // Login interface
+        require_once 'sites/sexacomms/login.php';
+        exit();
+
+    case ($host === 'sexacomms.com' || $host === 'www.sexacomms.com'):
+        // Warning page
+        require_once 'sites/sexacomms/warning.php';
         exit();
 
     case ($host === 'flirts.nyc' || $host === 'www.flirts.nyc'):
         // Customer site
-        require_once '../aeims/sites/flirts.nyc/index.php';
+        require_once 'sites/flirts.nyc/index.php';
         exit();
 
     case ($host === 'nycflirts.com' || $host === 'www.nycflirts.com'):
         // Customer site
-        require_once '../aeims/sites/nycflirts.com/index.php';
+        require_once 'sites/nycflirts.com/index.php';
         exit();
 }
 
@@ -280,7 +285,7 @@ if ($config['aeims_integration']['enabled']) {
                 <h2 class="section-title">Sites Powered by <?php echo $config['site']['name']; ?></h2>
                 <p class="section-description">Our platform currently powers multiple successful adult entertainment sites</p>
                 <div class="sites-grid">
-                    <?php foreach ($config['powered_sites'] as $site): ?>
+                    <?php foreach (($config['powered_sites'] ?? []) as $site): ?>
                     <div class="site-card">
                         <h3><?php echo htmlspecialchars($site['domain']); ?></h3>
                         <div class="site-theme"><?php echo htmlspecialchars($site['theme']); ?></div>

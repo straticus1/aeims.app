@@ -1,1 +1,37 @@
-{}
+{
+    "_CREDENTIALS_DOCUMENTATION": {
+        "admin": "admin / admin123",
+        "demo_customer": "demo@example.com / password123"
+    },
+    "admin": {
+        "id": "admin-001",
+        "name": "AEIMS Administrator",
+        "type": "admin",
+        "password": "$2y$12$JP.67OTiEhKSBLnC/ZWbfemLSys6OjA8urR6u0HazOeXtKv18hyW.",
+        "password_plaintext_for_testing": "admin123",
+        "email": "admin@aeims.app",
+        "created_at": "2025-10-08T20:00:00+00:00",
+        "permissions": [
+            "all"
+        ]
+    },
+    "demo@example.com": {
+        "id": "cust-001",
+        "name": "Demo Customer",
+        "type": "customer",
+        "password": "$2y$12$mnyNVMx39NP6E93rDUBLLuEtSmjnLv0P9kPEi67WedY9/2XgI5cni",
+        "password_plaintext_for_testing": "password123",
+        "email": "demo@example.com",
+        "domains": [
+            "demo.example.com"
+        ],
+        "status": "active",
+        "created_at": "2025-10-08T20:00:00+00:00",
+        "permissions": [
+            "dashboard",
+            "domains",
+            "stats",
+            "support"
+        ]
+    }
+}

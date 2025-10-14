@@ -4,6 +4,8 @@ namespace AEIMS\Services;
 
 use Exception;
 
+require_once __DIR__ . '/CustomerManager.php';
+
 /**
  * Single Sign-On (SSO) Manager
  * Handles unified authentication across all After Dark Systems domains

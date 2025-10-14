@@ -1,12 +1,41 @@
 <?php
 /**
  * AEIMS Agents Portal - Operator Login
+ * SECURITY UPDATED: Session fixation, CSRF, rate limiting
  */
 
-require_once 'includes/OperatorAuth.php';
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+
+// SECURITY FIX: Load SecurityManager
+require_once __DIR__ . '/../includes/SecurityManager.php';
+$security = SecurityManager::getInstance();
+
+// Initialize secure session
+$security->initializeSecureSession();
+$security->applySecurityHeaders();
+
+// Adjust paths for router.php routing
+$operatorAuthPath = __DIR__ . '/includes/OperatorAuth.php';
+if (!file_exists($operatorAuthPath)) {
+    die('ERROR: OperatorAuth.php not found at: ' . $operatorAuthPath . '<br>__DIR__ is: ' . __DIR__);
+}
+
+require_once $operatorAuthPath;
+
+// Load config
+$configPath = __DIR__ . '/../config.php';
+if (!file_exists($configPath)) {
+    die('Config file not found at: ' . $configPath);
+}
+$config = include $configPath;
+if (!is_array($config)) {
+    die('Config file did not return an array');
+}
 
 $auth = new OperatorAuth();
-$config = include 'config.php';
 $message = '';
 $messageType = '';
 
@@ -18,21 +47,37 @@ if ($auth->isLoggedIn()) {
 
 // Handle login form submission
 if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'], $_POST['password'])) {
+    // SECURITY FIX: CSRF Protection
+    verify_csrf();
+
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    
+
     if (empty($username) || empty($password)) {
         $message = 'Please enter both username and password.';
         $messageType = 'error';
     } else {
-        $result = $auth->authenticate($username, $password);
-        
-        if ($result['success']) {
-            header('Location: ' . ($result['redirect'] ?? 'dashboard.php'));
-            exit();
-        } else {
-            $message = $result['error'];
+        // SECURITY FIX: Rate limiting
+        $ip = $_SERVER['REMOTE_ADDR'];
+        if (!$security->checkRateLimit($ip, 'operator_login', 5, 300)) {
+            $message = 'Too many login attempts. Please try again in 5 minutes.';
             $messageType = 'error';
+        } else {
+            $result = $auth->authenticate($username, $password);
+
+            if ($result['success']) {
+                // SECURITY FIX: Regenerate session to prevent session fixation
+                $security->regenerateSessionOnLogin();
+
+                // Reset rate limit on success
+                $security->resetRateLimit($ip, 'operator_login');
+
+                header('Location: ' . ($result['redirect'] ?? 'dashboard.php'));
+                exit();
+            } else {
+                $message = $result['error'];
+                $messageType = 'error';
+            }
         }
     }
 }
@@ -67,7 +112,7 @@ if (isset($_GET['timeout'])) {
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -113,7 +158,7 @@ if (isset($_GET['timeout'])) {
         .logo h1 {
             font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -154,14 +199,14 @@ if (isset($_GET['timeout'])) {
 
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .login-btn {
             width: 100%;
             padding: 14px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             color: white;
             border: none;
             border-radius: 12px;
@@ -174,7 +219,7 @@ if (isset($_GET['timeout'])) {
 
         .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
         }
 
         .login-btn:active {
@@ -230,7 +275,7 @@ if (isset($_GET['timeout'])) {
         }
 
         .demo-account strong {
-            color: #667eea;
+            color: #3b82f6;
         }
 
         .info-content h2 {
@@ -343,6 +388,8 @@ if (isset($_GET['timeout'])) {
             <?php endif; ?>
 
             <form class="login-form" method="POST" action="">
+                <?php echo csrf_field(); ?>
+
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input 

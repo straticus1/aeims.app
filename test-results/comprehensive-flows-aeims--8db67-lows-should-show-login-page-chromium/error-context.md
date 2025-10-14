@@ -1,0 +1,78 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - link "AEIMS After Dark Systems" [ref=e5] [cursor=pointer]:
+        - /url: index.php
+        - heading "AEIMS" [level=1] [ref=e6]
+        - generic [ref=e7]: After Dark Systems
+      - heading "Customer Login" [level=2] [ref=e8]
+      - paragraph [ref=e9]: Access your AEIMS management dashboard
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: Email or Username
+        - textbox "Email or Username" [ref=e13]:
+          - /placeholder: Enter your email or username
+      - generic [ref=e14]:
+        - generic [ref=e15]: Password
+        - textbox "Password" [ref=e16]:
+          - /placeholder: Enter your password
+      - generic [ref=e17]:
+        - generic [ref=e18] [cursor=pointer]:
+          - checkbox "Remember me" [ref=e19]
+          - text: Remember me
+        - link "Forgot password?" [ref=e20] [cursor=pointer]:
+          - /url: "#forgot-password"
+      - button "Sign In" [ref=e21] [cursor=pointer]
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - heading "Demo Accounts" [level=4] [ref=e24]
+        - generic [ref=e25]:
+          - strong [ref=e26]: "Customer Demo:"
+          - text: "Email: demo@example.com"
+          - text: "Password: password123"
+        - generic [ref=e27]:
+          - strong [ref=e28]: "Admin Access:"
+          - text: "Username: admin"
+          - text: "Password: admin123"
+      - generic [ref=e29]:
+        - paragraph [ref=e30]:
+          - text: New customer?
+          - link "Contact us for access" [ref=e31] [cursor=pointer]:
+            - /url: index.php#contact
+        - paragraph [ref=e32]:
+          - link "Need help with login?" [ref=e33] [cursor=pointer]:
+            - /url: support.php
+  - generic [ref=e34]:
+    - heading "AEIMS Customer Portal" [level=3] [ref=e35]
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: 🎛️
+        - generic [ref=e39]:
+          - strong [ref=e40]: Initial AEIMS Setup
+          - paragraph [ref=e41]: Configure your platform settings and preferences
+      - generic [ref=e42]:
+        - generic [ref=e43]: 🌐
+        - generic [ref=e44]:
+          - strong [ref=e45]: Domain Management
+          - paragraph [ref=e46]: Add, remove, and configure your domains
+      - generic [ref=e47]:
+        - generic [ref=e48]: 📊
+        - generic [ref=e49]:
+          - strong [ref=e50]: Analytics & Stats
+          - paragraph [ref=e51]: View line, chat, and video statistics
+      - generic [ref=e52]:
+        - generic [ref=e53]: 🎫
+        - generic [ref=e54]:
+          - strong [ref=e55]: Support Tickets
+          - paragraph [ref=e56]: Submit and track your support requests
+    - generic [ref=e57]:
+      - heading "🔒 Secure Access" [level=4] [ref=e58]
+      - list [ref=e59]:
+        - listitem [ref=e60]: ✓ SSL encrypted connection
+        - listitem [ref=e61]: ✓ Session-based authentication
+        - listitem [ref=e62]: ✓ Login attempt monitoring
+        - listitem [ref=e63]: ✓ Automatic session timeout
+```

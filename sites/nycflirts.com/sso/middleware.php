@@ -4,7 +4,7 @@
  * Automatically logs in users with valid SSO tokens from other domains
  */
 
-require_once '../../../services/SSOManager.php';
+require_once __DIR__ . '/../../../services/SSOManager.php';
 
 /**
  * Check for SSO token and auto-login if valid

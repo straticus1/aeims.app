@@ -1,0 +1,804 @@
+#!/usr/bin/env php
+<?php
+/**
+ * AEIMS Platform CLI
+ * Unified command-line interface for AEIMS platform management
+ *
+ * @version 2.0
+ * @date 2025-10-13
+ */
+
+if (php_sapi_name() !== 'cli') {
+    die("This script must be run from the command line.\n");
+}
+
+// CLI Colors
+function c($text, $color) {
+    $colors = [
+        'red' => "\033[0;31m", 'green' => "\033[0;32m", 'yellow' => "\033[1;33m",
+        'blue' => "\033[0;34m", 'magenta' => "\033[0;35m", 'cyan' => "\033[0;36m",
+        'white' => "\033[1;37m", 'gray' => "\033[0;37m", 'reset' => "\033[0m",
+        'bold' => "\033[1m", 'dim' => "\033[2m"
+    ];
+    return ($colors[$color] ?? '') . $text . $colors['reset'];
+}
+
+function success($msg) { echo c("✓ ", 'green') . $msg . "\n"; }
+function error($msg) { echo c("✗ ", 'red') . $msg . "\n"; }
+function info($msg) { echo c("ℹ ", 'blue') . $msg . "\n"; }
+function warning($msg) { echo c("⚠ ", 'yellow') . $msg . "\n"; }
+function title($msg) { echo "\n" . c("=== $msg ===", 'cyan') . "\n\n"; }
+
+// Parse arguments
+$cmd = $argv[1] ?? 'help';
+$subcmd = $argv[2] ?? '';
+
+switch ($cmd) {
+    // Authentication commands
+    case 'auth':
+        handleAuth($subcmd, array_slice($argv, 3));
+        break;
+
+    // Deployment commands
+    case 'deploy':
+        handleDeploy($subcmd, array_slice($argv, 3));
+        break;
+
+    // Site management
+    case 'site':
+        handleSite($subcmd, array_slice($argv, 3));
+        break;
+
+    // Database commands
+    case 'db':
+        handleDatabase($subcmd, array_slice($argv, 3));
+        break;
+
+    // Testing commands
+    case 'test':
+        handleTest($subcmd, array_slice($argv, 3));
+        break;
+
+    // System status
+    case 'status':
+        showStatus();
+        break;
+
+    // Logs
+    case 'logs':
+        handleLogs($subcmd, array_slice($argv, 3));
+        break;
+
+    // Help
+    case 'help':
+    case '--help':
+    case '-h':
+    default:
+        showHelp();
+        break;
+}
+
+// ============================================================================
+// AUTHENTICATION COMMANDS
+// ============================================================================
+
+function handleAuth($subcmd, $args) {
+    switch ($subcmd) {
+        case 'test':
+            $site = $args[0] ?? 'flirts.nyc';
+            $username = $args[1] ?? '';
+            $password = $args[2] ?? '';
+
+            if (empty($username) || empty($password)) {
+                error("Usage: aeims auth test [site] [username] [password]");
+                exit(1);
+            }
+
+            testAuth($site, $username, $password);
+            break;
+
+        case 'list':
+            listCustomers();
+            break;
+
+        case 'verify':
+            $username = $args[0] ?? '';
+            $password = $args[1] ?? '';
+
+            if (empty($username) || empty($password)) {
+                error("Usage: aeims auth verify [username] [password]");
+                exit(1);
+            }
+
+            verifyPassword($username, $password);
+            break;
+
+        case 'create':
+            $username = $args[0] ?? '';
+            $email = $args[1] ?? '';
+            $password = $args[2] ?? '';
+            $site = $args[3] ?? 'flirts.nyc';
+
+            if (empty($username) || empty($email) || empty($password)) {
+                error("Usage: aeims auth create [username] [email] [password] [site]");
+                exit(1);
+            }
+
+            createCustomer($username, $email, $password, $site);
+            break;
+
+        case 'curl':
+            $site = $args[0] ?? 'flirts.nyc';
+            $username = $args[1] ?? '';
+            $password = $args[2] ?? '';
+
+            if (empty($username) || empty($password)) {
+                error("Usage: aeims auth curl [site] [username] [password]");
+                exit(1);
+            }
+
+            curlTest($site, $username, $password);
+            break;
+
+        default:
+            error("Unknown auth command: $subcmd");
+            echo "Try: aeims auth [test|list|verify|create|curl]\n";
+            exit(1);
+    }
+}
+
+function testAuth($site, $username, $password) {
+    title("Testing Authentication");
+    info("Site: $site");
+    info("Username: $username");
+
+    require_once __DIR__ . '/includes/CustomerAuth.php';
+
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    $auth = new CustomerAuth($site);
+    $result = $auth->authenticate($username, $password);
+
+    if ($result['success']) {
+        success("Authentication successful!");
+
+        if (isset($_SESSION['customer_id'])) {
+            success("Session created - customer_id: " . $_SESSION['customer_id']);
+        } else {
+            error("Session NOT created!");
+        }
+
+        if (isset($_SESSION['customer_data'])) {
+            success("Customer data in session");
+            echo "  Username: " . ($_SESSION['customer_data']['username'] ?? 'N/A') . "\n";
+            echo "  Email: " . ($_SESSION['customer_data']['email'] ?? 'N/A') . "\n";
+        }
+
+        info("Redirect: " . ($result['redirect'] ?? 'none'));
+    } else {
+        error("Authentication failed: " . ($result['message'] ?? 'Unknown error'));
+    }
+}
+
+function listCustomers() {
+    title("Customer Accounts");
+
+    $dataFile = __DIR__ . '/data/customers.json';
+    if (!file_exists($dataFile)) {
+        error("Customers file not found");
+        return;
+    }
+
+    $data = json_decode(file_get_contents($dataFile), true);
+    $customers = $data['customers'] ?? [];
+
+    if (empty($customers)) {
+        warning("No customers found");
+        return;
+    }
+
+    info("Found " . count($customers) . " customers:\n");
+
+    foreach ($customers as $customerId => $customer) {
+        echo c($customer['username'], 'cyan') . c(" ($customerId)", 'gray') . "\n";
+        echo "  Email: " . ($customer['email'] ?? 'N/A') . "\n";
+        echo "  Active: " . (($customer['active'] ?? true) ? c('Yes', 'green') : c('No', 'red')) . "\n";
+        echo "  Site: " . ($customer['site_domain'] ?? 'N/A') . "\n";
+
+        if (isset($customer['password_plaintext_for_testing'])) {
+            echo "  " . c("Test Password:", 'yellow') . " " . $customer['password_plaintext_for_testing'] . "\n";
+        }
+        echo "\n";
+    }
+}
+
+function verifyPassword($username, $password) {
+    title("Password Verification");
+    info("Username: $username");
+
+    $dataFile = __DIR__ . '/data/customers.json';
+    $data = json_decode(file_get_contents($dataFile), true);
+    $customers = $data['customers'] ?? [];
+
+    $customer = null;
+    foreach ($customers as $cust) {
+        if (($cust['username'] ?? '') === $username || ($cust['email'] ?? '') === $username) {
+            $customer = $cust;
+            break;
+        }
+    }
+
+    if (!$customer) {
+        error("Customer not found");
+        return;
+    }
+
+    success("Customer found: " . $customer['customer_id']);
+
+    if (password_verify($password, $customer['password_hash'])) {
+        success("Password is CORRECT!");
+    } else {
+        error("Password is INCORRECT!");
+
+        if (isset($customer['password_plaintext_for_testing'])) {
+            info("Expected: " . $customer['password_plaintext_for_testing']);
+        }
+    }
+}
+
+function createCustomer($username, $email, $password, $site) {
+    title("Create Customer");
+
+    $dataFile = __DIR__ . '/data/customers.json';
+    $data = json_decode(file_get_contents($dataFile), true);
+    $customers = $data['customers'] ?? [];
+
+    foreach ($customers as $cust) {
+        if (($cust['username'] ?? '') === $username) {
+            error("Username already exists");
+            return;
+        }
+        if (($cust['email'] ?? '') === $email) {
+            error("Email already exists");
+            return;
+        }
+    }
+
+    $customerId = 'cust_' . bin2hex(random_bytes(8));
+    $customer = [
+        'customer_id' => $customerId,
+        'username' => $username,
+        'email' => $email,
+        'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        'password_plaintext_for_testing' => $password,
+        'site_domain' => $site,
+        'active' => true,
+        'verified' => false,
+        'created_at' => date('c'),
+        'billing' => ['credits' => 10.00],
+        'profile' => ['display_name' => $username]
+    ];
+
+    $customers[$customerId] = $customer;
+    $data['customers'] = $customers;
+
+    if (file_put_contents($dataFile, json_encode($data, JSON_PRETTY_PRINT))) {
+        success("Customer created!");
+        echo "  ID: $customerId\n";
+        echo "  Username: $username\n";
+        echo "  Email: $email\n";
+        echo "  Site: $site\n";
+    } else {
+        error("Failed to save");
+    }
+}
+
+function curlTest($site, $username, $password) {
+    title("cURL Authentication Test");
+    info("Testing https://$site/auth.php");
+    info("Username: $username");
+
+    $url = "https://$site/auth.php";
+    $postData = http_build_query([
+        'action' => 'login',
+        'username' => $username,
+        'password' => $password
+    ]);
+
+    $cmd = sprintf(
+        'curl -s -i -c /tmp/aeims_test_cookies.txt -b /tmp/aeims_test_cookies.txt -X POST %s -d %s 2>&1',
+        escapeshellarg($url),
+        escapeshellarg($postData)
+    );
+
+    $output = shell_exec($cmd);
+    $lines = explode("\n", $output);
+
+    $status = $location = $cookie = '';
+
+    foreach ($lines as $line) {
+        if (preg_match('/^HTTP\/[\d.]+ (\d+)/', $line, $m)) $status = $m[1];
+        if (preg_match('/^Location: (.+)/', $line, $m)) $location = trim($m[1]);
+        if (preg_match('/^Set-Cookie: (.+)/', $line, $m)) $cookie = trim($m[1]);
+    }
+
+    echo "\n";
+
+    if ($status) {
+        if ($status == '302' || $status == '303') {
+            success("HTTP $status (Redirect)");
+        } else {
+            warning("HTTP $status");
+        }
+    }
+
+    if ($location) {
+        if (strpos($location, 'dashboard') !== false) {
+            success("Location: $location " . c("(Dashboard!)", 'green'));
+        } else {
+            error("Location: $location " . c("(Not dashboard)", 'red'));
+        }
+    }
+
+    if ($cookie && strpos($cookie, 'PHPSESSID') !== false) {
+        success("Session cookie set");
+    }
+
+    echo "\n" . c("Full Response:", 'dim') . "\n";
+    echo str_repeat("─", 60) . "\n";
+    echo substr($output, 0, 1000) . "\n";
+    echo str_repeat("─", 60) . "\n";
+}
+
+// ============================================================================
+// DEPLOYMENT COMMANDS
+// ============================================================================
+
+function handleDeploy($subcmd, $args) {
+    switch ($subcmd) {
+        case 'build':
+            $tag = $args[0] ?? 'latest-' . date('Ymd-His');
+            buildImage($tag);
+            break;
+
+        case 'push':
+            $tag = $args[0] ?? 'latest';
+            pushImage($tag);
+            break;
+
+        case 'release':
+            $tag = $args[0] ?? 'release-' . date('Ymd-His');
+            releaseToProduction($tag);
+            break;
+
+        case 'rollback':
+            $revision = $args[0] ?? '';
+            if (empty($revision)) {
+                error("Usage: aeims deploy rollback [task-definition-revision]");
+                exit(1);
+            }
+            rollback($revision);
+            break;
+
+        default:
+            error("Unknown deploy command: $subcmd");
+            echo "Try: aeims deploy [build|push|release|rollback]\n";
+            exit(1);
+    }
+}
+
+function buildImage($tag) {
+    title("Building Docker Image");
+    info("Tag: $tag");
+
+    $image = "515966511618.dkr.ecr.us-east-1.amazonaws.com/afterdarksys/aeims:$tag";
+    $cmd = "docker build -t $image .";
+
+    info("Running: $cmd");
+    passthru($cmd, $exitCode);
+
+    if ($exitCode === 0) {
+        success("Build complete!");
+        echo "\nImage: $image\n";
+    } else {
+        error("Build failed!");
+        exit(1);
+    }
+}
+
+function pushImage($tag) {
+    title("Pushing to ECR");
+
+    $image = "515966511618.dkr.ecr.us-east-1.amazonaws.com/afterdarksys/aeims:$tag";
+
+    info("Authenticating with ECR...");
+    passthru("aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 515966511618.dkr.ecr.us-east-1.amazonaws.com");
+
+    info("Pushing $image...");
+    passthru("docker push $image", $exitCode);
+
+    if ($exitCode === 0) {
+        success("Push complete!");
+    } else {
+        error("Push failed!");
+        exit(1);
+    }
+}
+
+function releaseToProduction($tag) {
+    title("Release to Production");
+
+    // Build
+    buildImage($tag);
+
+    // Push
+    pushImage($tag);
+
+    // Register task definition
+    info("Registering task definition...");
+    $taskDef = createTaskDefinition($tag);
+    file_put_contents('/tmp/aeims-task-def.json', json_encode($taskDef, JSON_PRETTY_PRINT));
+
+    $output = shell_exec("aws ecs register-task-definition --region us-east-1 --cli-input-json file:///tmp/aeims-task-def.json --query 'taskDefinition.revision' --output text");
+    $revision = trim($output);
+
+    success("Task definition registered: aeims-app:$revision");
+
+    // Update service
+    info("Updating ECS service...");
+    passthru("aws ecs update-service --cluster aeims-cluster --service aeims-service --task-definition aeims-app:$revision --region us-east-1");
+
+    info("Waiting for deployment...");
+    passthru("aws ecs wait services-stable --cluster aeims-cluster --services aeims-service --region us-east-1");
+
+    success("Deployment complete!");
+    echo "\nTask Definition: aeims-app:$revision\n";
+    echo "Image: 515966511618.dkr.ecr.us-east-1.amazonaws.com/afterdarksys/aeims:$tag\n";
+}
+
+function rollback($revision) {
+    title("Rolling Back");
+    info("Rolling back to task definition: $revision");
+
+    passthru("aws ecs update-service --cluster aeims-cluster --service aeims-service --task-definition aeims-app:$revision --region us-east-1");
+    passthru("aws ecs wait services-stable --cluster aeims-cluster --services aeims-service --region us-east-1");
+
+    success("Rollback complete!");
+}
+
+function createTaskDefinition($tag) {
+    return [
+        'family' => 'aeims-app',
+        'executionRoleArn' => 'arn:aws:iam::515966511618:role/ecsTaskExecutionRole',
+        'networkMode' => 'awsvpc',
+        'cpu' => '512',
+        'memory' => '1024',
+        'containerDefinitions' => [[
+            'name' => 'aeims',
+            'image' => "515966511618.dkr.ecr.us-east-1.amazonaws.com/afterdarksys/aeims:$tag",
+            'essential' => true,
+            'portMappings' => [['containerPort' => 80, 'protocol' => 'tcp']],
+            'environment' => [
+                ['name' => 'DB_HOST', 'value' => 'nitetext-db.c3iuy64is41m.us-east-1.rds.amazonaws.com'],
+                ['name' => 'DB_NAME', 'value' => 'aeims_core'],
+                ['name' => 'DB_USER', 'value' => 'nitetext'],
+                ['name' => 'DB_PASS', 'value' => 'NiteText2025!SecureProd'],
+                ['name' => 'DB_PORT', 'value' => '5432']
+            ],
+            'logConfiguration' => [
+                'logDriver' => 'awslogs',
+                'options' => [
+                    'awslogs-group' => '/ecs/aeims-app',
+                    'awslogs-region' => 'us-east-1',
+                    'awslogs-stream-prefix' => 'ecs'
+                ]
+            ]
+        ]]
+    ];
+}
+
+// ============================================================================
+// SITE MANAGEMENT
+// ============================================================================
+
+function handleSite($subcmd, $args) {
+    switch ($subcmd) {
+        case 'list':
+            listSites();
+            break;
+
+        case 'test':
+            $site = $args[0] ?? 'flirts.nyc';
+            testSite($site);
+            break;
+
+        case 'ssl':
+            $site = $args[0] ?? '';
+            if (empty($site)) {
+                testAllSSL();
+            } else {
+                testSSL($site);
+            }
+            break;
+
+        default:
+            error("Unknown site command: $subcmd");
+            echo "Try: aeims site [list|test|ssl]\n";
+            exit(1);
+    }
+}
+
+function listSites() {
+    title("AEIMS Sites");
+
+    $sites = [
+        ['name' => 'AEIMS Admin', 'domain' => 'aeims.app', 'type' => 'Admin Portal'],
+        ['name' => 'Flirts NYC', 'domain' => 'flirts.nyc', 'type' => 'Customer Site'],
+        ['name' => 'NYC Flirts', 'domain' => 'nycflirts.com', 'type' => 'Customer Site'],
+        ['name' => 'SexaComms', 'domain' => 'sexacomms.com', 'type' => 'Operator Portal']
+    ];
+
+    foreach ($sites as $site) {
+        echo c($site['name'], 'cyan') . c(" ({$site['domain']})", 'gray') . "\n";
+        echo "  Type: " . $site['type'] . "\n";
+        echo "  URL: https://{$site['domain']}\n\n";
+    }
+}
+
+function testSite($site) {
+    title("Testing Site: $site");
+
+    $url = "https://$site/";
+    info("Fetching $url");
+
+    $cmd = "curl -s -o /dev/null -w '%{http_code}' " . escapeshellarg($url);
+    $status = shell_exec($cmd);
+
+    if ($status == '200') {
+        success("Site is UP (HTTP $status)");
+    } else {
+        error("Site returned HTTP $status");
+    }
+}
+
+function testSSL($site) {
+    title("SSL Certificate: $site");
+
+    $cmd = "curl -vI https://$site/ 2>&1 | grep -i 'SSL connection\\|subject:\\|expire'";
+    passthru($cmd);
+}
+
+function testAllSSL() {
+    $sites = ['aeims.app', 'flirts.nyc', 'nycflirts.com', 'sexacomms.com'];
+
+    foreach ($sites as $site) {
+        testSSL($site);
+        echo "\n";
+    }
+}
+
+// ============================================================================
+// DATABASE COMMANDS
+// ============================================================================
+
+function handleDatabase($subcmd, $args) {
+    switch ($subcmd) {
+        case 'connect':
+            connectDB();
+            break;
+
+        case 'backup':
+            backupDB();
+            break;
+
+        case 'migrate':
+            runMigrations();
+            break;
+
+        default:
+            error("Unknown db command: $subcmd");
+            echo "Try: aeims db [connect|backup|migrate]\n";
+            exit(1);
+    }
+}
+
+function connectDB() {
+    title("Connect to Database");
+    $cmd = 'PGPASSWORD=NiteText2025!SecureProd psql -h nitetext-db.c3iuy64is41m.us-east-1.rds.amazonaws.com -p 5432 -U nitetext -d aeims_core';
+    info("Running: $cmd");
+    passthru($cmd);
+}
+
+function backupDB() {
+    title("Database Backup");
+    $filename = "aeims-backup-" . date('Ymd-His') . ".sql";
+    info("Creating backup: $filename");
+
+    $cmd = "PGPASSWORD=NiteText2025!SecureProd pg_dump -h nitetext-db.c3iuy64is41m.us-east-1.rds.amazonaws.com -p 5432 -U nitetext aeims_core > $filename";
+    passthru($cmd, $exitCode);
+
+    if ($exitCode === 0) {
+        success("Backup saved to $filename");
+    } else {
+        error("Backup failed");
+    }
+}
+
+function runMigrations() {
+    title("Run Migrations");
+    warning("Migration system not yet implemented");
+}
+
+// ============================================================================
+// TESTING COMMANDS
+// ============================================================================
+
+function handleTest($subcmd, $args) {
+    switch ($subcmd) {
+        case 'auth':
+            runAuthTests();
+            break;
+
+        case 'e2e':
+            runE2ETests();
+            break;
+
+        case 'all':
+            runAllTests();
+            break;
+
+        default:
+            error("Unknown test command: $subcmd");
+            echo "Try: aeims test [auth|e2e|all]\n";
+            exit(1);
+    }
+}
+
+function runAuthTests() {
+    title("Authentication Tests");
+
+    $tests = [
+        ['flirts.nyc', 'flirtyuser', 'password123'],
+        ['nycflirts.com', 'nycuser', 'password123'],
+        ['flirts.nyc', 'crossuser', 'password123'],
+        ['nycflirts.com', 'crossuser', 'password123']
+    ];
+
+    foreach ($tests as [$site, $user, $pass]) {
+        echo c("Testing $user on $site...", 'cyan') . " ";
+
+        $url = "https://$site/auth.php";
+        $postData = http_build_query(['action' => 'login', 'username' => $user, 'password' => $pass]);
+
+        $cmd = sprintf(
+            'curl -s -o /dev/null -w "%%{http_code}" -X POST %s -d %s',
+            escapeshellarg($url),
+            escapeshellarg($postData)
+        );
+
+        $status = shell_exec($cmd);
+
+        if ($status == '302' || $status == '200') {
+            success("PASS");
+        } else {
+            error("FAIL (HTTP $status)");
+        }
+    }
+}
+
+function runE2ETests() {
+    title("E2E Tests");
+    info("Running Playwright tests...");
+    passthru("npx playwright test");
+}
+
+function runAllTests() {
+    runAuthTests();
+    runE2ETests();
+}
+
+// ============================================================================
+// STATUS & LOGS
+// ============================================================================
+
+function showStatus() {
+    title("AEIMS Platform Status");
+
+    info("Checking ECS service...");
+    passthru("aws ecs describe-services --cluster aeims-cluster --services aeims-service --region us-east-1 --query 'services[0].[serviceName,status,runningCount,desiredCount,deployments[0].taskDefinition]' --output table");
+
+    echo "\n";
+    info("Checking sites...");
+
+    $sites = ['aeims.app', 'flirts.nyc', 'nycflirts.com', 'sexacomms.com'];
+
+    foreach ($sites as $site) {
+        $cmd = "curl -s -o /dev/null -w '%{http_code}' https://$site/";
+        $status = shell_exec($cmd);
+
+        echo "  $site: ";
+        if ($status == '200') {
+            echo c("UP", 'green') . " (HTTP $status)\n";
+        } else {
+            echo c("DOWN", 'red') . " (HTTP $status)\n";
+        }
+    }
+}
+
+function handleLogs($subcmd, $args) {
+    switch ($subcmd) {
+        case 'tail':
+            $minutes = $args[0] ?? 5;
+            tailLogs($minutes);
+            break;
+
+        case 'errors':
+            $minutes = $args[0] ?? 30;
+            showErrors($minutes);
+            break;
+
+        default:
+            $minutes = 5;
+            tailLogs($minutes);
+            break;
+    }
+}
+
+function tailLogs($minutes) {
+    title("ECS Logs (last $minutes minutes)");
+    passthru("aws logs tail /ecs/aeims-app --since {$minutes}m --follow --region us-east-1");
+}
+
+function showErrors($minutes) {
+    title("Error Logs (last $minutes minutes)");
+    passthru("aws logs tail /ecs/aeims-app --since {$minutes}m --filter-pattern '?ERROR ?error ?Error' --region us-east-1");
+}
+
+// ============================================================================
+// HELP
+// ============================================================================
+
+function showHelp() {
+    echo c("AEIMS Platform CLI v2.0", 'bold') . "\n";
+    echo c("Unified command-line interface for AEIMS management", 'dim') . "\n\n";
+
+    echo c("AUTHENTICATION", 'yellow') . "\n";
+    echo "  aeims auth list                           List all customers\n";
+    echo "  aeims auth test [site] [user] [pass]      Test authentication locally\n";
+    echo "  aeims auth curl [site] [user] [pass]      Test via HTTP request\n";
+    echo "  aeims auth verify [user] [pass]           Verify password hash\n";
+    echo "  aeims auth create [user] [email] [pass]   Create new customer\n\n";
+
+    echo c("DEPLOYMENT", 'yellow') . "\n";
+    echo "  aeims deploy build [tag]                  Build Docker image\n";
+    echo "  aeims deploy push [tag]                   Push to ECR\n";
+    echo "  aeims deploy release [tag]                Full release to production\n";
+    echo "  aeims deploy rollback [revision]          Rollback to previous version\n\n";
+
+    echo c("SITE MANAGEMENT", 'yellow') . "\n";
+    echo "  aeims site list                           List all sites\n";
+    echo "  aeims site test [domain]                  Test site availability\n";
+    echo "  aeims site ssl [domain]                   Check SSL certificate\n\n";
+
+    echo c("DATABASE", 'yellow') . "\n";
+    echo "  aeims db connect                          Connect to database\n";
+    echo "  aeims db backup                           Create database backup\n";
+    echo "  aeims db migrate                          Run migrations\n\n";
+
+    echo c("TESTING", 'yellow') . "\n";
+    echo "  aeims test auth                           Run authentication tests\n";
+    echo "  aeims test e2e                            Run E2E tests\n";
+    echo "  aeims test all                            Run all tests\n\n";
+
+    echo c("MONITORING", 'yellow') . "\n";
+    echo "  aeims status                              Show platform status\n";
+    echo "  aeims logs [tail|errors] [minutes]        View logs\n\n";
+
+    echo c("EXAMPLES", 'yellow') . "\n";
+    echo "  aeims auth test flirts.nyc crossuser password123\n";
+    echo "  aeims deploy release auth-fix-20251013\n";
+    echo "  aeims site ssl flirts.nyc\n";
+    echo "  aeims logs tail 10\n\n";
+}

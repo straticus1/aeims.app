@@ -5,8 +5,16 @@
  */
 
 class AeimsLogger {
-    private static $logDirectory = '/var/log/aeims/';
+    private static $logDirectory = null;
     private static $instance = null;
+
+    private static function getLogDirectory() {
+        if (self::$logDirectory === null) {
+            // Use local logs directory in project root
+            self::$logDirectory = __DIR__ . '/../logs/';
+        }
+        return self::$logDirectory;
+    }
 
     // Log files
     const API_LOG = 'api_calls.log';
@@ -32,8 +40,9 @@ class AeimsLogger {
      * Ensure log directory exists
      */
     private function ensureLogDirectory() {
-        if (!is_dir(self::$logDirectory)) {
-            mkdir(self::$logDirectory, 0755, true);
+        $logDir = self::getLogDirectory();
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
         }
     }
 
@@ -62,7 +71,7 @@ class AeimsLogger {
 
         $logLine = json_encode($logEntry) . "\n";
 
-        $filepath = self::$logDirectory . $filename;
+        $filepath = self::getLogDirectory() . $filename;
         file_put_contents($filepath, $logLine, FILE_APPEND | LOCK_EX);
 
         // Also log to syslog for critical errors
@@ -198,8 +207,9 @@ class AeimsLogger {
         ];
 
         foreach ($logFiles as $logFile) {
-            $currentPath = self::$logDirectory . $logFile;
-            $archivePath = self::$logDirectory . "archive/$date-$logFile";
+            $logDir = self::getLogDirectory();
+            $currentPath = $logDir . $logFile;
+            $archivePath = $logDir . "archive/$date-$logFile";
 
             if (file_exists($currentPath) && filesize($currentPath) > 0) {
                 // Create archive directory
@@ -230,7 +240,7 @@ class AeimsLogger {
         }
 
         // Clean up old archives (older than 30 days)
-        $archiveDir = self::$logDirectory . 'archive/';
+        $archiveDir = self::getLogDirectory() . 'archive/';
         if (is_dir($archiveDir)) {
             $files = glob($archiveDir . '*');
             foreach ($files as $file) {

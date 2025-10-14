@@ -135,6 +135,21 @@ class MessagingManager
                 $conversation['billing_info']['total_customer_paid'] += $cost;
                 $operatorEarning = $cost * self::OPERATOR_COMMISSION;
                 $conversation['billing_info']['total_operator_earned'] += $operatorEarning;
+
+                // Log activity
+                $activityLogger = new ActivityLogger();
+                $activityType = !empty($attachments) ? ActivityLogger::TYPE_CONTENT : ActivityLogger::TYPE_MESSAGE;
+                $activityLogger->logSpending(
+                    $senderId,
+                    $conversation['operator_id'],
+                    $activityType,
+                    $cost,
+                    [
+                        'conversation_id' => $conversationId,
+                        'message_id' => $messageId,
+                        'has_attachments' => !empty($attachments)
+                    ]
+                );
             }
         }
         elseif ($senderType === 'operator') {
@@ -325,6 +340,172 @@ class MessagingManager
             'message_rate' => self::MESSAGE_RATE,
             'content_rate' => self::CONTENT_RATE,
             'operator_commission' => self::OPERATOR_COMMISSION
+        ];
+    }
+
+    /**
+     * Send a paid operator message
+     * Charges the customer and gives operator earnings
+     */
+    public function sendPaidOperatorMessage(string $conversationId, string $operatorId, string $content, float $rate = 1.99): array
+    {
+        if (!isset($this->conversations[$conversationId])) {
+            throw new Exception('Conversation not found');
+        }
+
+        $conversation = &$this->conversations[$conversationId];
+
+        if ($conversation['status'] !== 'active') {
+            throw new Exception('Conversation is not active');
+        }
+
+        if ($conversation['operator_id'] !== $operatorId) {
+            throw new Exception('Operator not authorized for this conversation');
+        }
+
+        $messageId = 'msg_' . uniqid();
+        $now = date('Y-m-d H:i:s');
+
+        // Charge customer
+        $customerManager = new CustomerManager();
+        $customerManager->deductCredits($conversation['customer_id'], $rate, 'Paid operator message');
+
+        // Update billing
+        $operatorEarning = $rate * self::OPERATOR_COMMISSION;
+        $conversation['billing_info']['total_customer_paid'] += $rate;
+        $conversation['billing_info']['total_operator_earned'] += $operatorEarning;
+
+        // Log activity
+        $activityLogger = new ActivityLogger();
+        $activityLogger->logSpending(
+            $conversation['customer_id'],
+            $operatorId,
+            'paid_operator_message',
+            $rate,
+            [
+                'conversation_id' => $conversationId,
+                'message_id' => $messageId,
+                'message_type' => 'paid'
+            ]
+        );
+
+        // Create message
+        $message = [
+            'message_id' => $messageId,
+            'conversation_id' => $conversationId,
+            'sender_id' => $operatorId,
+            'sender_type' => 'operator',
+            'message_type' => 'paid',
+            'content' => $content,
+            'attachments' => [],
+            'sent_at' => $now,
+            'billing' => [
+                'cost' => $rate,
+                'operator_earned' => $operatorEarning,
+                'was_charged' => true
+            ]
+        ];
+
+        $this->messages[$messageId] = $message;
+
+        // Update conversation
+        $conversation['last_activity'] = $now;
+        $conversation['billing_info']['message_count']++;
+
+        $this->saveData();
+
+        return $message;
+    }
+
+    /**
+     * Send a marketing message (free for customer)
+     */
+    public function sendMarketingMessage(string $conversationId, string $operatorId, string $content): array
+    {
+        if (!isset($this->conversations[$conversationId])) {
+            throw new Exception('Conversation not found');
+        }
+
+        $conversation = &$this->conversations[$conversationId];
+
+        if ($conversation['status'] !== 'active') {
+            throw new Exception('Conversation is not active');
+        }
+
+        if ($conversation['operator_id'] !== $operatorId) {
+            throw new Exception('Operator not authorized for this conversation');
+        }
+
+        $messageId = 'msg_' . uniqid();
+        $now = date('Y-m-d H:i:s');
+
+        // Marketing messages are free - no billing
+
+        // Create message
+        $message = [
+            'message_id' => $messageId,
+            'conversation_id' => $conversationId,
+            'sender_id' => $operatorId,
+            'sender_type' => 'operator',
+            'message_type' => 'marketing',
+            'content' => $content,
+            'attachments' => [],
+            'sent_at' => $now,
+            'billing' => [
+                'cost' => 0.00,
+                'was_charged' => false
+            ]
+        ];
+
+        $this->messages[$messageId] = $message;
+
+        // Update conversation
+        $conversation['last_activity'] = $now;
+        $conversation['billing_info']['message_count']++;
+
+        $this->saveData();
+
+        return $message;
+    }
+
+    /**
+     * Bulk send marketing message to all customers for an operator
+     */
+    public function sendBulkMarketingMessage(string $operatorId, string $content, string $siteDomain): array
+    {
+        $sentCount = 0;
+        $failedCount = 0;
+        $results = [];
+
+        // Get all conversations for this operator
+        $operatorConversations = $this->getOperatorConversations($operatorId);
+
+        foreach ($operatorConversations as $conversation) {
+            // Only send to active conversations on this site
+            if ($conversation['status'] === 'active' && $conversation['site_domain'] === $siteDomain) {
+                try {
+                    $this->sendMarketingMessage($conversation['conversation_id'], $operatorId, $content);
+                    $sentCount++;
+                    $results[] = [
+                        'customer_id' => $conversation['customer_id'],
+                        'status' => 'sent'
+                    ];
+                } catch (Exception $e) {
+                    $failedCount++;
+                    $results[] = [
+                        'customer_id' => $conversation['customer_id'],
+                        'status' => 'failed',
+                        'error' => $e->getMessage()
+                    ];
+                }
+            }
+        }
+
+        return [
+            'sent_count' => $sentCount,
+            'failed_count' => $failedCount,
+            'total_conversations' => count($operatorConversations),
+            'results' => $results
         ];
     }
 }

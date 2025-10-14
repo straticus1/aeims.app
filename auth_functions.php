@@ -3,7 +3,9 @@
  * Authentication and Session Management
  */
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 /**
  * Check if user is logged in

@@ -1,0 +1,206 @@
+{
+    "operators": {
+        "op1": {
+            "operator_id": "op1",
+            "username": "SexyKitten",
+            "email": "kitten@example.com",
+            "category": "premium",
+            "verified": true,
+            "active": true,
+            "commission_rate": 0.65,
+            "created_at": "2024-01-01 00:00:00",
+            "profile": {
+                "bio": "Experienced cam model specializing in interactive shows",
+                "age": 25,
+                "location": "US",
+                "languages": [
+                    "English"
+                ],
+                "specialties": [
+                    "interactive_toys",
+                    "role_play",
+                    "fetish"
+                ]
+            }
+        },
+        "op2": {
+            "operator_id": "op2",
+            "username": "TechGoddess",
+            "email": "goddess@example.com",
+            "category": "elite",
+            "verified": true,
+            "active": true,
+            "commission_rate": 0.7,
+            "created_at": "2024-01-01 00:00:00",
+            "profile": {
+                "bio": "Elite performer with cutting-edge interactive technology",
+                "age": 28,
+                "location": "US",
+                "languages": [
+                    "English",
+                    "Spanish"
+                ],
+                "specialties": [
+                    "tech_shows",
+                    "interactive_toys",
+                    "vr_experience"
+                ]
+            }
+        },
+        "op_68eb76056f6e9": {
+            "operator_id": "op_68eb76056f6e9",
+            "username": "NYCDiamond",
+            "email": "nycdiamond@nycflirts.com",
+            "category": "premium",
+            "verified": true,
+            "active": true,
+            "commission_rate": 0.65,
+            "rates": {
+                "call_rate": 6.99,
+                "message_rate": 1.49,
+                "content_rate": 7.99,
+                "toy_rates": []
+            },
+            "created_at": "2025-10-12 09:33:57",
+            "profile": {
+                "bio": "Premium NYC entertainer specializing in interactive shows",
+                "age": 26,
+                "location": "New York, NY",
+                "languages": [
+                    "English"
+                ],
+                "specialties": [
+                    "interactive_toys",
+                    "role_play",
+                    "girlfriend_experience"
+                ]
+            },
+            "verified_at": "2025-10-12 09:33:57"
+        },
+        "op_68eb7605a82d3": {
+            "operator_id": "op_68eb7605a82d3",
+            "username": "NYCAngel",
+            "email": "nycangel@nycflirts.com",
+            "category": "standard",
+            "verified": true,
+            "active": true,
+            "commission_rate": 0.6,
+            "rates": {
+                "call_rate": 3.99,
+                "message_rate": 0.99,
+                "content_rate": 4.99,
+                "toy_rates": []
+            },
+            "created_at": "2025-10-12 09:33:57",
+            "profile": {
+                "bio": "Sweet and fun NYC model ready to chat",
+                "age": 23,
+                "location": "New York, NY",
+                "languages": [
+                    "English",
+                    "Spanish"
+                ],
+                "specialties": [
+                    "casual_chat",
+                    "girlfriend_experience",
+                    "dancing"
+                ]
+            },
+            "verified_at": "2025-10-12 09:33:57"
+        },
+        "op_68eb7605e1318": {
+            "operator_id": "op_68eb7605e1318",
+            "username": "ManhattanQueen",
+            "email": "manhattanqueen@flirts.nyc",
+            "category": "elite",
+            "verified": true,
+            "active": true,
+            "commission_rate": 0.75,
+            "rates": {
+                "call_rate": 19.99,
+                "message_rate": 4.99,
+                "content_rate": 24.99,
+                "toy_rates": []
+            },
+            "created_at": "2025-10-12 09:33:57",
+            "profile": {
+                "bio": "Elite Manhattan entertainer with exclusive experiences",
+                "age": 29,
+                "location": "Manhattan, NY",
+                "languages": [
+                    "English",
+                    "French"
+                ],
+                "specialties": [
+                    "luxury_experience",
+                    "interactive_toys",
+                    "vr_experience",
+                    "fetish"
+                ]
+            },
+            "verified_at": "2025-10-12 09:33:58"
+        },
+        "op_68eb76062a6e0": {
+            "operator_id": "op_68eb76062a6e0",
+            "username": "BrooklynBabe",
+            "email": "brooklynbabe@flirts.nyc",
+            "category": "premium",
+            "verified": true,
+            "active": true,
+            "commission_rate": 0.65,
+            "rates": {
+                "call_rate": 6.99,
+                "message_rate": 1.49,
+                "content_rate": 7.99,
+                "toy_rates": []
+            },
+            "created_at": "2025-10-12 09:33:58",
+            "profile": {
+                "bio": "Brooklyn based entertainer with a playful side",
+                "age": 24,
+                "location": "Brooklyn, NY",
+                "languages": [
+                    "English"
+                ],
+                "specialties": [
+                    "role_play",
+                    "interactive_toys",
+                    "gaming"
+                ]
+            },
+            "verified_at": "2025-10-12 09:33:58"
+        },
+        "op_68eb760666e3d": {
+            "operator_id": "op_68eb760666e3d",
+            "username": "NYCGoddess",
+            "email": "nycgoddess@nycflirts.com",
+            "category": "elite",
+            "verified": true,
+            "active": true,
+            "commission_rate": 0.75,
+            "rates": {
+                "call_rate": 19.99,
+                "message_rate": 4.99,
+                "content_rate": 24.99,
+                "toy_rates": []
+            },
+            "created_at": "2025-10-12 09:33:58",
+            "profile": {
+                "bio": "Elite NYC goddess offering premium interactive experiences",
+                "age": 27,
+                "location": "New York, NY",
+                "languages": [
+                    "English",
+                    "Italian"
+                ],
+                "specialties": [
+                    "luxury_experience",
+                    "fetish",
+                    "domination",
+                    "interactive_toys"
+                ]
+            },
+            "verified_at": "2025-10-12 09:33:58"
+        }
+    }
+}

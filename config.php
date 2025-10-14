@@ -83,5 +83,61 @@ return [
             'description' => 'Adult communication platform for operators with earnings tracking and multi-site management',
             'services' => ['Operator Dashboard', 'Earnings Tracking', 'Multi-Site Support', 'Payment Processing']
         ]
+    ],
+
+    // Portal configuration
+    'portal' => [
+        'name' => 'AEIMS Agents',
+        'subtitle' => 'Cross-Domain Operator Management',
+        'description' => 'Unified dashboard for managing operator profiles across all AEIMS domains'
+    ],
+
+    // Domains configuration
+    'domains' => [
+        'nycflirts.com' => ['name' => 'NYC Flirts', 'theme' => 'Romance & Dating'],
+        'flirts.nyc' => ['name' => 'Flirts NYC', 'theme' => 'Entertainment & Connections'],
+        'sexacomms.com' => ['name' => 'SexaComms', 'theme' => 'Operator Platform'],
+        'beastybitches.com' => ['name' => 'Beasty Bitches', 'theme' => 'Adult Entertainment'],
+        'cavern.love' => ['name' => 'Cavern Love', 'theme' => 'Intimate Connections'],
+        'holyflirts.com' => ['name' => 'Holy Flirts', 'theme' => 'Divine Encounters'],
+        'dommecats.com' => ['name' => 'Domme Cats', 'theme' => 'Domination & Fetish'],
+        'fantasyflirts.live' => ['name' => 'Fantasy Flirts', 'theme' => 'Fantasy Roleplay'],
+        'latenite.love' => ['name' => 'Late Nite', 'theme' => 'Late Night Connections'],
+        'nitetext.com' => ['name' => 'Nite Text', 'theme' => 'Text Chat Platform']
+    ],
+
+    // Services configuration
+    'services' => [
+        'calls' => [
+            'name' => 'Voice Calls',
+            'description' => 'Inbound voice call routing',
+            'icon' => '📞'
+        ],
+        'text' => [
+            'name' => 'Text Messages',
+            'description' => 'SMS and text messaging',
+            'icon' => '💬'
+        ],
+        'chat' => [
+            'name' => 'Live Chat',
+            'description' => 'Real-time chat rooms',
+            'icon' => '💭'
+        ],
+        'video' => [
+            'name' => 'Video Calls',
+            'description' => 'Video chat sessions',
+            'icon' => '📹'
+        ]
+    ],
+
+    // Availability configuration
+    'availability' => [
+        'status_options' => [
+            'online' => ['label' => 'Online', 'color' => '#22c55e'],
+            'busy' => ['label' => 'Busy', 'color' => '#f59e0b'],
+            'away' => ['label' => 'Away', 'color' => '#6b7280'],
+            'offline' => ['label' => 'Offline', 'color' => '#ef4444'],
+            'do_not_disturb' => ['label' => 'Do Not Disturb', 'color' => '#7c3aed']
+        ]
     ]
 ];

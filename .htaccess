@@ -6,6 +6,16 @@ RewriteRule ^api/admin/sites(/.*)?$ api/admin/sites.php [L,QSA]
 # Health check endpoint
 RewriteRule ^health$ health.php [L]
 
+# Agent portal routes - serve directly if file exists, otherwise route through router
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^agents/ - [L]
+
+# Agent routes that don't exist as files go through router
+RewriteRule ^agents/(.+)$ router.php [L,QSA]
+
+# Admin routes - route through router.php
+RewriteRule ^admin(.*)$ router.php [L,QSA]
+
 # Default routing for other files
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

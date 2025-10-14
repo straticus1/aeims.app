@@ -1,0 +1,56 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - text: /var/www/html/sites/flirts.nyc/index.php on line 51
+  - text: "Deprecated: htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/sites/flirts.nyc/index.php on line 51"
+  - text: "\">"
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Flirts NYC" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e5]:
+        - list [ref=e6]:
+          - listitem [ref=e7]:
+            - link "About Us" [ref=e8] [cursor=pointer]:
+              - /url: "#about"
+      - generic [ref=e9]:
+        - link "Sign In" [ref=e10] [cursor=pointer]:
+          - /url: /login.php
+        - link "Join Now" [ref=e11] [cursor=pointer]:
+          - /url: /register.php
+  - main [ref=e12]:
+    - generic [ref=e14]:
+      - heading "Welcome to Flirts NYC" [level=1] [ref=e15]
+      - paragraph [ref=e16]: Are you ready to start flirting? Find your flirt, find them now. On flirts.nyc.
+      - button "Start Flirting Now" [ref=e17] [cursor=pointer]
+    - generic [ref=e18]:
+      - heading "Why Flirts NYC" [level=2] [ref=e19]
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - heading "💳 Discrete Billing" [level=3] [ref=e22]
+          - paragraph [ref=e23]: Your privacy matters. All transactions appear discreetly on your statement with no obvious references.
+        - generic [ref=e24]:
+          - heading "📞 Anonymous Calling" [level=3] [ref=e25]
+          - paragraph [ref=e26]: Connect with complete privacy. Your personal information stays protected while you enjoy conversations.
+        - generic [ref=e27]:
+          - heading "⭐ Experienced Operators" [level=3] [ref=e28]
+          - paragraph [ref=e29]: Our professional operators are skilled in creating engaging, memorable experiences tailored to you.
+        - generic [ref=e30]:
+          - heading "🚀 State of the Art Platform" [level=3] [ref=e31]
+          - paragraph [ref=e32]: Cutting-edge technology ensures seamless connections, crystal-clear audio, and reliable service.
+        - generic [ref=e33]:
+          - heading "✨ Most Unique Features" [level=3] [ref=e34]
+          - paragraph [ref=e35]: Experience the industry's most innovative features designed to enhance your flirting experience.
+        - generic [ref=e36]:
+          - heading "🔒 After Dark Systems Network" [level=3] [ref=e37]
+          - paragraph [ref=e38]: Part of the trusted After Dark Systems network, ensuring quality, security, and professional service.
+      - button "Join Flirts NYC Today" [ref=e40] [cursor=pointer]
+  - contentinfo [ref=e41]:
+    - paragraph [ref=e42]: © 2024 Flirts NYC. All rights reserved.
+    - paragraph [ref=e43]:
+      - text: Part of the
+      - strong [ref=e44]: After Dark Systems
+      - text: Network
+    - paragraph [ref=e45]: Powered by AEIMS Platform - Secure, Discrete, Professional
+```
