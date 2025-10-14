@@ -3,8 +3,14 @@
  * AEIMS Database Manager
  * Secure PDO wrapper with connection pooling, prepared statements, and transaction support
  *
- * FIXES:
- * - All database connectivity issues
+ * PHASE 1 FIXES (Zero-Downtime Migration):
+ * - Lazy connection (NEVER connects until actually used)
+ * - Feature flag support (USE_DATABASE env var)
+ * - isAvailable() method to check DB status
+ * - Never throws exceptions that break authentication
+ * - Automatic fallback support for DataLayer
+ *
+ * SECURITY FIXES:
  * - SQL injection prevention with prepared statements
  * - Proper error handling
  * - Automatic reconnection
@@ -15,10 +21,15 @@ class DatabaseManager {
     private $connection = null;
     private $config;
     private $inTransaction = false;
+    private $useDatabase = false;
+    private $connectionAttempted = false;
+    private $connectionAvailable = false;
 
     private function __construct() {
         $this->config = include __DIR__ . '/../config.php';
-        $this->connect();
+        // PHASE 1 FIX: Don't connect here! Wait until actually needed
+        // This prevents auth from breaking if DB is unavailable
+        $this->useDatabase = (getenv('USE_DATABASE') === 'true');
     }
 
     public static function getInstance() {
@@ -29,9 +40,50 @@ class DatabaseManager {
     }
 
     /**
-     * Establish database connection
+     * Check if database is enabled via feature flag
+     */
+    public function isEnabled() {
+        return $this->useDatabase;
+    }
+
+    /**
+     * Check if database is available (safe method, never throws)
+     */
+    public function isAvailable() {
+        // If not enabled, return false
+        if (!$this->useDatabase) {
+            return false;
+        }
+
+        // If we already tried and failed, return cached result
+        if ($this->connectionAttempted) {
+            return $this->connectionAvailable;
+        }
+
+        // Try to connect (but don't throw exceptions)
+        try {
+            $this->connect();
+            $this->connectionAvailable = $this->isConnected();
+            $this->connectionAttempted = true;
+            return $this->connectionAvailable;
+        } catch (Exception $e) {
+            error_log("Database availability check failed: " . $e->getMessage());
+            $this->connectionAvailable = false;
+            $this->connectionAttempted = true;
+            return false;
+        }
+    }
+
+    /**
+     * Establish database connection (PHASE 1 FIX: Never throws on failure)
      */
     private function connect() {
+        // Only try if database is enabled
+        if (!$this->useDatabase) {
+            error_log("Database not enabled (USE_DATABASE=false)");
+            return false;
+        }
+
         $dbConfig = $this->config['database'] ?? [];
 
         $host = $dbConfig['host'] ?? getenv('DB_HOST') ?: '127.0.0.1';
@@ -52,20 +104,33 @@ class DatabaseManager {
             ]);
 
             error_log("Database connected successfully");
+            $this->connectionAvailable = true;
+            return true;
         } catch (PDOException $e) {
             error_log("Database connection failed: " . $e->getMessage());
-            throw new Exception("Unable to connect to database");
+            $this->connectionAvailable = false;
+            // PHASE 1 FIX: Don't throw! This was breaking auth
+            return false;
         }
     }
 
     /**
      * Get database connection (with auto-reconnect)
+     * PHASE 1 FIX: Throws only if DB is enabled but unavailable
      */
     public function getConnection() {
+        // If database not enabled, throw informative exception
+        if (!$this->useDatabase) {
+            throw new Exception("Database not enabled. Set USE_DATABASE=true to enable.");
+        }
+
         try {
             // Test connection
             if ($this->connection === null || !$this->isConnected()) {
-                $this->connect();
+                $connected = $this->connect();
+                if (!$connected) {
+                    throw new Exception("Unable to connect to database");
+                }
             }
             return $this->connection;
         } catch (Exception $e) {
@@ -435,25 +500,84 @@ class DatabaseManager {
     }
 
     /**
-     * Health check
+     * Health check (PHASE 1 FIX: Safe method, never throws)
      */
     public function healthCheck() {
+        // Check if enabled
+        if (!$this->isEnabled()) {
+            return [
+                'status' => 'disabled',
+                'message' => 'Database not enabled (USE_DATABASE=false)',
+                'enabled' => false
+            ];
+        }
+
+        // Check if available
+        if (!$this->isAvailable()) {
+            return [
+                'status' => 'unavailable',
+                'message' => 'Database connection failed',
+                'enabled' => true,
+                'available' => false
+            ];
+        }
+
+        // Try to get info
         try {
             $result = $this->fetchOne("SELECT version() as version, current_database() as database");
             return [
                 'status' => 'healthy',
+                'enabled' => true,
+                'available' => true,
                 'database' => $result['database'] ?? 'unknown',
                 'version' => $result['version'] ?? 'unknown',
-                'tables' => $this->tableExists('aeims_app_users')
+                'tables' => $this->tableExists('sites')
             ];
         } catch (Exception $e) {
             return [
                 'status' => 'unhealthy',
+                'enabled' => true,
+                'available' => false,
                 'error' => $e->getMessage()
             ];
         }
     }
 }
+
+// =============================================================================
+// PHASE 1 MIGRATION NOTES
+// =============================================================================
+//
+// Changes Made:
+// 1. Added lazy connection - no longer connects in constructor
+// 2. Added isEnabled() - check if USE_DATABASE env var is true
+// 3. Added isAvailable() - safe method to check DB status
+// 4. Updated connect() - returns boolean instead of throwing
+// 5. Updated getConnection() - throws only when DB enabled but unavailable
+// 6. Updated healthCheck() - never throws, returns detailed status
+//
+// Usage:
+//   $db = DatabaseManager::getInstance();  // Safe! Never throws
+//   if ($db->isAvailable()) {
+//       $result = $db->query(...);  // Use database
+//   } else {
+//       // Fallback to JSON
+//   }
+//
+// Environment Variables:
+//   USE_DATABASE=false   - Database disabled (default, current state)
+//   USE_DATABASE=true    - Database enabled (migration mode)
+//
+// Migration Phases:
+//   Phase 1: Fix DatabaseManager (COMPLETE)
+//   Phase 2: Create DataLayer abstraction
+//   Phase 3: Implement dual-write mode
+//   Phase 4: Validate data integrity
+//   Phase 5: Switch read source to PostgreSQL
+//   Phase 6: PostgreSQL only
+//
+// =============================================================================
+
 
 // Global helper
 function getDB() {
