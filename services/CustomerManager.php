@@ -7,41 +7,30 @@ use Exception;
 /**
  * Customer Management Service
  * Handles customer accounts, authentication, and activity for multi-site platform
+ * UPDATED: Now uses DataLayer for PostgreSQL/JSON abstraction
  */
 class CustomerManager
 {
-    private array $customers = [];
-    private string $dataFile;
+    private $dataLayer;
     private string $activityFile;
 
     public function __construct()
     {
-        $this->dataFile = __DIR__ . '/../data/customers.json';
+        // Use DataLayer for customer data access
+        require_once __DIR__ . '/../includes/DataLayer.php';
+        $this->dataLayer = getDataLayer();
         $this->activityFile = __DIR__ . '/../data/customer_activity.json';
-        $this->loadData();
     }
 
-    private function loadData(): void
+    private function getAllCustomersInternal(): array
     {
-        if (file_exists($this->dataFile)) {
-            $data = json_decode(file_get_contents($this->dataFile), true);
-            $this->customers = $data['customers'] ?? [];
+        // Load all customers from DataLayer
+        $dataFile = __DIR__ . '/../data/customers.json';
+        if (!file_exists($dataFile)) {
+            return [];
         }
-    }
-
-    private function saveData(): void
-    {
-        $dataDir = dirname($this->dataFile);
-        if (!is_dir($dataDir)) {
-            mkdir($dataDir, 0755, true);
-        }
-
-        $data = [
-            'customers' => $this->customers,
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-
-        file_put_contents($this->dataFile, json_encode($data, JSON_PRETTY_PRINT));
+        $data = json_decode(file_get_contents($dataFile), true);
+        return $data['customers'] ?? [];
     }
 
     public function createCustomer(array $customerData): array
@@ -50,22 +39,25 @@ class CustomerManager
         $username = $customerData['username'];
         $email = $customerData['email'];
 
-        // Check if username or email already exists
-        foreach ($this->customers as $customer) {
-            if ($customer['username'] === $username) {
-                throw new Exception('Username already exists');
-            }
-            if ($customer['email'] === $email) {
-                throw new Exception('Email already registered');
-            }
+        // Check if username or email already exists using DataLayer
+        $existingByUsername = $this->dataLayer->getCustomer($username);
+        if ($existingByUsername) {
+            throw new Exception('Username already exists');
+        }
+
+        $existingByEmail = $this->dataLayer->getCustomer($email);
+        if ($existingByEmail) {
+            throw new Exception('Email already registered');
         }
 
         $customer = [
             'customer_id' => $customerId,
+            'id' => $customerId,  // Add 'id' for compatibility
             'username' => $username,
             'email' => $email,
             'password_hash' => password_hash($customerData['password'], PASSWORD_DEFAULT),
             'site_domain' => $customerData['site_domain'],
+            'sites' => [$customerData['site_domain']],  // Add sites array
             'registration_ip' => $customerData['registration_ip'] ?? 'unknown',
             'active' => true,
             'verified' => false,
@@ -90,8 +82,8 @@ class CustomerManager
             ]
         ];
 
-        $this->customers[$customerId] = $customer;
-        $this->saveData();
+        // Save using DataLayer
+        $this->dataLayer->saveCustomer($customer);
 
         // Remove password hash from returned data
         unset($customer['password_hash']);
@@ -100,22 +92,18 @@ class CustomerManager
 
     public function authenticate(string $username, string $password, string $siteDomain): ?array
     {
-        foreach ($this->customers as $customer) {
-            if (($customer['username'] === $username || $customer['email'] === $username)
-                && $customer['active']) {
+        // Use DataLayer to get customer
+        $customer = $this->dataLayer->getCustomer($username);
 
-                if (password_verify($password, $customer['password_hash'])) {
-                    // Update last activity
-                    $this->customers[$customer['customer_id']]['stats']['last_activity'] = date('Y-m-d H:i:s');
-                    $this->customers[$customer['customer_id']]['stats']['total_sessions']++;
-                    $this->saveData();
+        if ($customer && $customer['active'] && password_verify($password, $customer['password_hash'])) {
+            // Update last activity using DataLayer
+            $customer['stats']['last_activity'] = date('Y-m-d H:i:s');
+            $customer['stats']['total_sessions'] = ($customer['stats']['total_sessions'] ?? 0) + 1;
+            $this->dataLayer->saveCustomer($customer);
 
-                    // Remove password hash from returned data
-                    $customerData = $customer;
-                    unset($customerData['password_hash']);
-                    return $customerData;
-                }
-            }
+            // Remove password hash from returned data
+            unset($customer['password_hash']);
+            return $customer;
         }
 
         return null;
@@ -123,8 +111,11 @@ class CustomerManager
 
     public function getCustomer(string $customerId): ?array
     {
-        if (isset($this->customers[$customerId])) {
-            $customer = $this->customers[$customerId];
+        // Use DataLayer to get customer by ID
+        $customers = $this->getAllCustomersInternal();
+        $customer = $customers[$customerId] ?? null;
+
+        if ($customer) {
             unset($customer['password_hash']);
             return $customer;
         }
@@ -133,9 +124,14 @@ class CustomerManager
 
     public function updateCustomer(string $customerId, array $updates): array
     {
-        if (!isset($this->customers[$customerId])) {
+        $customer = $this->getCustomer($customerId);
+        if (!$customer) {
             throw new Exception('Customer not found');
         }
+
+        // Re-add password_hash for saving
+        $customers = $this->getAllCustomersInternal();
+        $fullCustomer = $customers[$customerId];
 
         $allowedFields = ['username', 'email', 'active', 'verified', 'profile', 'billing'];
 
@@ -143,35 +139,34 @@ class CustomerManager
             if (in_array($key, $allowedFields)) {
                 if ($key === 'profile' || $key === 'billing') {
                     // Merge nested objects
-                    $this->customers[$customerId][$key] = array_merge(
-                        $this->customers[$customerId][$key] ?? [],
-                        $value
-                    );
+                    $fullCustomer[$key] = array_merge($fullCustomer[$key] ?? [], $value);
                 } else {
-                    $this->customers[$customerId][$key] = $value;
+                    $fullCustomer[$key] = $value;
                 }
             }
         }
 
-        $this->customers[$customerId]['updated_at'] = date('Y-m-d H:i:s');
-        $this->saveData();
+        $fullCustomer['updated_at'] = date('Y-m-d H:i:s');
+        $this->dataLayer->saveCustomer($fullCustomer);
 
         return $this->getCustomer($customerId);
     }
 
     public function addCredits(string $customerId, float $amount, string $reason = ''): bool
     {
-        if (!isset($this->customers[$customerId])) {
+        $customers = $this->getAllCustomersInternal();
+        if (!isset($customers[$customerId])) {
             throw new Exception('Customer not found');
         }
 
-        $this->customers[$customerId]['billing']['credits'] += $amount;
-        $this->saveData();
+        $customer = $customers[$customerId];
+        $customer['billing']['credits'] = ($customer['billing']['credits'] ?? 0) + $amount;
+        $this->dataLayer->saveCustomer($customer);
 
         $this->logActivity($customerId, 'credits_added', [
             'amount' => $amount,
             'reason' => $reason,
-            'new_balance' => $this->customers[$customerId]['billing']['credits']
+            'new_balance' => $customer['billing']['credits']
         ]);
 
         return true;
@@ -179,22 +174,26 @@ class CustomerManager
 
     public function deductCredits(string $customerId, float $amount, string $reason = ''): bool
     {
-        if (!isset($this->customers[$customerId])) {
+        $customers = $this->getAllCustomersInternal();
+        if (!isset($customers[$customerId])) {
             throw new Exception('Customer not found');
         }
 
-        if ($this->customers[$customerId]['billing']['credits'] < $amount) {
+        $customer = $customers[$customerId];
+        $credits = $customer['billing']['credits'] ?? 0;
+
+        if ($credits < $amount) {
             throw new Exception('Insufficient credits');
         }
 
-        $this->customers[$customerId]['billing']['credits'] -= $amount;
-        $this->customers[$customerId]['billing']['total_spent'] += $amount;
-        $this->saveData();
+        $customer['billing']['credits'] = $credits - $amount;
+        $customer['billing']['total_spent'] = ($customer['billing']['total_spent'] ?? 0) + $amount;
+        $this->dataLayer->saveCustomer($customer);
 
         $this->logActivity($customerId, 'credits_deducted', [
             'amount' => $amount,
             'reason' => $reason,
-            'new_balance' => $this->customers[$customerId]['billing']['credits']
+            'new_balance' => $customer['billing']['credits']
         ]);
 
         return true;
