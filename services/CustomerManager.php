@@ -201,11 +201,12 @@ class CustomerManager
 
     public function getCustomerCredits(string $customerId): float
     {
-        if (!isset($this->customers[$customerId])) {
+        $customers = $this->getAllCustomersInternal();
+        if (!isset($customers[$customerId])) {
             throw new Exception('Customer not found');
         }
 
-        return $this->customers[$customerId]['billing']['credits'];
+        return $customers[$customerId]['billing']['credits'] ?? 0.0;
     }
 
     public function logActivity(string $customerId, string $action, array $data = []): void
@@ -262,8 +263,9 @@ class CustomerManager
 
     public function getAllCustomers(): array
     {
+        $allCustomers = $this->getAllCustomersInternal();
         $customers = [];
-        foreach ($this->customers as $customer) {
+        foreach ($allCustomers as $customer) {
             $customerData = $customer;
             unset($customerData['password_hash']);
             $customers[] = $customerData;
@@ -273,9 +275,10 @@ class CustomerManager
 
     public function getCustomersBySite(string $siteDomain): array
     {
+        $allCustomers = $this->getAllCustomersInternal();
         $customers = [];
-        foreach ($this->customers as $customer) {
-            if ($customer['site_domain'] === $siteDomain) {
+        foreach ($allCustomers as $customer) {
+            if (($customer['site_domain'] ?? '') === $siteDomain || in_array($siteDomain, $customer['sites'] ?? [])) {
                 $customerData = $customer;
                 unset($customerData['password_hash']);
                 $customers[] = $customerData;
@@ -286,50 +289,49 @@ class CustomerManager
 
     public function getCustomerById(string $customerId): ?array
     {
-        if (!isset($this->customers[$customerId])) {
-            return null;
-        }
-
-        $customer = $this->customers[$customerId];
-        unset($customer['password_hash']);
-        return $customer;
+        return $this->getCustomer($customerId);
     }
 
     public function getCustomerStats(string $customerId): array
     {
-        if (!isset($this->customers[$customerId])) {
+        $customers = $this->getAllCustomersInternal();
+        if (!isset($customers[$customerId])) {
             throw new Exception('Customer not found');
         }
 
-        return $this->customers[$customerId]['stats'];
+        return $customers[$customerId]['stats'] ?? [];
     }
 
     public function updateCustomerStats(string $customerId, array $stats): void
     {
-        if (!isset($this->customers[$customerId])) {
+        $customers = $this->getAllCustomersInternal();
+        if (!isset($customers[$customerId])) {
             throw new Exception('Customer not found');
         }
 
+        $customer = $customers[$customerId];
         foreach ($stats as $key => $value) {
-            if (isset($this->customers[$customerId]['stats'][$key])) {
-                $this->customers[$customerId]['stats'][$key] = $value;
+            if (isset($customer['stats'][$key])) {
+                $customer['stats'][$key] = $value;
             }
         }
 
-        $this->customers[$customerId]['stats']['last_activity'] = date('Y-m-d H:i:s');
-        $this->saveData();
+        $customer['stats']['last_activity'] = date('Y-m-d H:i:s');
+        $this->dataLayer->saveCustomer($customer);
     }
 
     public function deleteCustomer(string $customerId): bool
     {
-        if (!isset($this->customers[$customerId])) {
+        $customers = $this->getAllCustomersInternal();
+        if (!isset($customers[$customerId])) {
             throw new Exception('Customer not found');
         }
 
         // Archive instead of delete
-        $this->customers[$customerId]['active'] = false;
-        $this->customers[$customerId]['deleted_at'] = date('Y-m-d H:i:s');
-        $this->saveData();
+        $customer = $customers[$customerId];
+        $customer['active'] = false;
+        $customer['deleted_at'] = date('Y-m-d H:i:s');
+        $this->dataLayer->saveCustomer($customer);
 
         $this->logActivity($customerId, 'account_deleted', [
             'reason' => 'user_request'
