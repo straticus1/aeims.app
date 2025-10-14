@@ -14,11 +14,13 @@ if (!isset($_SESSION['customer_id'])) {
 require_once 'services/SiteManager.php';
 require_once 'services/CustomerManager.php';
 require_once 'services/OperatorManager.php';
+require_once __DIR__ . '/../../includes/DataLayer.php';
 
 try {
     $siteManager = new \AEIMS\Services\SiteManager();
     $customerManager = new \AEIMS\Services\CustomerManager();
     $operatorManager = new \AEIMS\Services\OperatorManager();
+    $dataLayer = getDataLayer();
 
     $hostname = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $hostname = preg_replace('/^www\./', '', $hostname);
@@ -33,35 +35,23 @@ try {
         exit;
     }
 
-    // Load favorites
-    $favoritesFile = __DIR__ . '/../../data/favorites.json';
-    $allFavorites = [];
-    if (file_exists($favoritesFile)) {
-        $allFavorites = json_decode(file_get_contents($favoritesFile), true) ?? [];
-    }
-
+    // Load favorites using DataLayer
     $customerId = $_SESSION['customer_id'];
-    $customerFavorites = $allFavorites[$customerId] ?? [];
+    $customerFavorites = $dataLayer->getFavorites($customerId);
 
     // Handle actions
     if (isset($_GET['action'])) {
         if ($_GET['action'] === 'add' && isset($_GET['operator_id'])) {
             $operatorId = $_GET['operator_id'];
             if (!in_array($operatorId, $customerFavorites)) {
-                $customerFavorites[] = $operatorId;
-                $allFavorites[$customerId] = $customerFavorites;
-                file_put_contents($favoritesFile, json_encode($allFavorites, JSON_PRETTY_PRINT));
+                $dataLayer->addFavorite($customerId, $operatorId);
                 $_SESSION['message'] = 'Operator added to favorites!';
             }
             header('Location: /favorites.php');
             exit;
         } elseif ($_GET['action'] === 'remove' && isset($_GET['operator_id'])) {
             $operatorId = $_GET['operator_id'];
-            $customerFavorites = array_filter($customerFavorites, function($id) use ($operatorId) {
-                return $id !== $operatorId;
-            });
-            $allFavorites[$customerId] = array_values($customerFavorites);
-            file_put_contents($favoritesFile, json_encode($allFavorites, JSON_PRETTY_PRINT));
+            $dataLayer->removeFavorite($customerId, $operatorId);
             $_SESSION['message'] = 'Operator removed from favorites.';
             header('Location: /favorites.php');
             exit;
