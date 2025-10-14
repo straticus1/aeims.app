@@ -7,13 +7,11 @@ use Exception;
 /**
  * Messaging System Manager
  * Handles customer-operator messaging with smart billing rules
+ * UPDATED: Now uses DataLayer for PostgreSQL/JSON abstraction
  */
 class MessagingManager
 {
-    private array $conversations = [];
-    private array $messages = [];
-    private string $conversationsFile;
-    private string $messagesFile;
+    private $dataLayer;
 
     // Billing rates
     private const MESSAGE_RATE = 0.50;  // Standard message rate
@@ -22,46 +20,8 @@ class MessagingManager
 
     public function __construct()
     {
-        $this->conversationsFile = __DIR__ . '/../data/conversations.json';
-        $this->messagesFile = __DIR__ . '/../data/messages.json';
-        $this->loadData();
-    }
-
-    private function loadData(): void
-    {
-        // Load conversations
-        if (file_exists($this->conversationsFile)) {
-            $data = json_decode(file_get_contents($this->conversationsFile), true);
-            $this->conversations = $data['conversations'] ?? [];
-        }
-
-        // Load messages
-        if (file_exists($this->messagesFile)) {
-            $data = json_decode(file_get_contents($this->messagesFile), true);
-            $this->messages = $data['messages'] ?? [];
-        }
-    }
-
-    private function saveData(): void
-    {
-        $dataDir = dirname($this->conversationsFile);
-        if (!is_dir($dataDir)) {
-            mkdir($dataDir, 0755, true);
-        }
-
-        // Save conversations
-        $conversationData = [
-            'conversations' => $this->conversations,
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-        file_put_contents($this->conversationsFile, json_encode($conversationData, JSON_PRETTY_PRINT));
-
-        // Save messages
-        $messageData = [
-            'messages' => $this->messages,
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-        file_put_contents($this->messagesFile, json_encode($messageData, JSON_PRETTY_PRINT));
+        require_once __DIR__ . '/../includes/DataLayer.php';
+        $this->dataLayer = getDataLayer();
     }
 
     public function startConversation(string $customerId, string $operatorId, string $siteDomain): string
@@ -84,19 +44,16 @@ class MessagingManager
             ]
         ];
 
-        $this->conversations[$conversationId] = $conversation;
-        $this->saveData();
-
+        $this->dataLayer->saveConversation($conversation);
         return $conversationId;
     }
 
     public function sendMessage(string $conversationId, string $senderId, string $content, string $senderType, array $attachments = []): array
     {
-        if (!isset($this->conversations[$conversationId])) {
+        $conversation = $this->dataLayer->getConversation($conversationId);
+        if (!$conversation) {
             throw new Exception('Conversation not found');
         }
-
-        $conversation = &$this->conversations[$conversationId];
 
         if ($conversation['status'] !== 'active') {
             throw new Exception('Conversation is not active');
@@ -174,120 +131,74 @@ class MessagingManager
             ]
         ];
 
-        $this->messages[$messageId] = $message;
+        $this->dataLayer->saveMessage($message);
 
         // Update conversation
         $conversation['last_activity'] = $now;
         $conversation['billing_info']['message_count']++;
-
-        $this->saveData();
+        $this->dataLayer->saveConversation($conversation);
 
         return $message;
     }
 
     public function getConversation(string $conversationId): ?array
     {
-        return $this->conversations[$conversationId] ?? null;
+        return $this->dataLayer->getConversation($conversationId);
     }
 
     public function getConversationMessages(string $conversationId, int $limit = 50, int $offset = 0): array
     {
-        $conversationMessages = [];
-
-        foreach ($this->messages as $message) {
-            if ($message['conversation_id'] === $conversationId) {
-                $conversationMessages[] = $message;
-            }
-        }
-
-        // Sort by sent_at descending (newest first)
-        usort($conversationMessages, function($a, $b) {
-            return strtotime($b['sent_at']) - strtotime($a['sent_at']);
-        });
-
-        return array_slice($conversationMessages, $offset, $limit);
+        return $this->dataLayer->getConversationMessages($conversationId, $limit, $offset);
     }
 
     public function getCustomerConversations(string $customerId): array
     {
-        $customerConversations = [];
+        $conversations = $this->dataLayer->getCustomerConversations($customerId);
 
-        foreach ($this->conversations as $conversation) {
-            if ($conversation['customer_id'] === $customerId) {
-                // Add last message preview
-                $lastMessage = $this->getLastMessage($conversation['conversation_id']);
-                $conversation['last_message'] = $lastMessage;
-                $customerConversations[] = $conversation;
-            }
+        // Add last message preview to each conversation
+        foreach ($conversations as &$conversation) {
+            $messages = $this->dataLayer->getConversationMessages($conversation['conversation_id'], 1, 0);
+            $conversation['last_message'] = !empty($messages) ? $messages[0] : null;
         }
 
-        // Sort by last activity
-        usort($customerConversations, function($a, $b) {
-            return strtotime($b['last_activity']) - strtotime($a['last_activity']);
-        });
-
-        return $customerConversations;
+        return $conversations;
     }
 
     public function getOperatorConversations(string $operatorId): array
     {
-        $operatorConversations = [];
+        $conversations = $this->dataLayer->getOperatorConversations($operatorId);
 
-        foreach ($this->conversations as $conversation) {
-            if ($conversation['operator_id'] === $operatorId) {
-                // Add last message preview
-                $lastMessage = $this->getLastMessage($conversation['conversation_id']);
-                $conversation['last_message'] = $lastMessage;
-                $operatorConversations[] = $conversation;
-            }
+        // Add last message preview to each conversation
+        foreach ($conversations as &$conversation) {
+            $messages = $this->dataLayer->getConversationMessages($conversation['conversation_id'], 1, 0);
+            $conversation['last_message'] = !empty($messages) ? $messages[0] : null;
         }
 
-        // Sort by last activity
-        usort($operatorConversations, function($a, $b) {
-            return strtotime($b['last_activity']) - strtotime($a['last_activity']);
-        });
-
-        return $operatorConversations;
-    }
-
-    private function getLastMessage(string $conversationId): ?array
-    {
-        $lastMessage = null;
-        $latestTime = '';
-
-        foreach ($this->messages as $message) {
-            if ($message['conversation_id'] === $conversationId) {
-                if ($message['sent_at'] > $latestTime) {
-                    $latestTime = $message['sent_at'];
-                    $lastMessage = $message;
-                }
-            }
-        }
-
-        return $lastMessage;
+        return $conversations;
     }
 
     public function endConversation(string $conversationId): bool
     {
-        if (!isset($this->conversations[$conversationId])) {
+        $conversation = $this->dataLayer->getConversation($conversationId);
+        if (!$conversation) {
             throw new Exception('Conversation not found');
         }
 
-        $this->conversations[$conversationId]['status'] = 'ended';
-        $this->conversations[$conversationId]['ended_at'] = date('Y-m-d H:i:s');
-        $this->saveData();
+        $conversation['status'] = 'ended';
+        $conversation['ended_at'] = date('Y-m-d H:i:s');
+        $this->dataLayer->saveConversation($conversation);
 
         return true;
     }
 
     public function getConversationStats(string $conversationId): array
     {
-        if (!isset($this->conversations[$conversationId])) {
+        $conversation = $this->dataLayer->getConversation($conversationId);
+        if (!$conversation) {
             throw new Exception('Conversation not found');
         }
 
-        $conversation = $this->conversations[$conversationId];
-        $messages = $this->getConversationMessages($conversationId, 1000); // Get all messages
+        $messages = $this->dataLayer->getConversationMessages($conversationId, 10000, 0); // Get all messages
 
         $customerMessages = array_filter($messages, fn($m) => $m['sender_type'] === 'customer');
         $operatorMessages = array_filter($messages, fn($m) => $m['sender_type'] === 'operator');
@@ -324,14 +235,14 @@ class MessagingManager
 
     public function markAsRead(string $conversationId, string $userId, string $userType): bool
     {
-        // This could be expanded to track read status per user
-        // For now, just update last activity
-        if (isset($this->conversations[$conversationId])) {
-            $this->conversations[$conversationId]['last_read_' . $userType] = date('Y-m-d H:i:s');
-            $this->saveData();
-            return true;
+        $conversation = $this->dataLayer->getConversation($conversationId);
+        if (!$conversation) {
+            return false;
         }
-        return false;
+
+        $conversation['last_read_' . $userType] = date('Y-m-d H:i:s');
+        $this->dataLayer->saveConversation($conversation);
+        return true;
     }
 
     public function getBillingRates(): array
@@ -349,11 +260,10 @@ class MessagingManager
      */
     public function sendPaidOperatorMessage(string $conversationId, string $operatorId, string $content, float $rate = 1.99): array
     {
-        if (!isset($this->conversations[$conversationId])) {
+        $conversation = $this->dataLayer->getConversation($conversationId);
+        if (!$conversation) {
             throw new Exception('Conversation not found');
         }
-
-        $conversation = &$this->conversations[$conversationId];
 
         if ($conversation['status'] !== 'active') {
             throw new Exception('Conversation is not active');
@@ -406,13 +316,12 @@ class MessagingManager
             ]
         ];
 
-        $this->messages[$messageId] = $message;
+        $this->dataLayer->saveMessage($message);
 
         // Update conversation
         $conversation['last_activity'] = $now;
         $conversation['billing_info']['message_count']++;
-
-        $this->saveData();
+        $this->dataLayer->saveConversation($conversation);
 
         return $message;
     }
@@ -422,11 +331,10 @@ class MessagingManager
      */
     public function sendMarketingMessage(string $conversationId, string $operatorId, string $content): array
     {
-        if (!isset($this->conversations[$conversationId])) {
+        $conversation = $this->dataLayer->getConversation($conversationId);
+        if (!$conversation) {
             throw new Exception('Conversation not found');
         }
-
-        $conversation = &$this->conversations[$conversationId];
 
         if ($conversation['status'] !== 'active') {
             throw new Exception('Conversation is not active');
@@ -457,13 +365,12 @@ class MessagingManager
             ]
         ];
 
-        $this->messages[$messageId] = $message;
+        $this->dataLayer->saveMessage($message);
 
         // Update conversation
         $conversation['last_activity'] = $now;
         $conversation['billing_info']['message_count']++;
-
-        $this->saveData();
+        $this->dataLayer->saveConversation($conversation);
 
         return $message;
     }

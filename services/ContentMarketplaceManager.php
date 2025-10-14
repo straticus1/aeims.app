@@ -2,57 +2,25 @@
 /**
  * Content Marketplace Manager
  * Handles operator content items (pictures, videos, etc.) for sale or free
+ * UPDATED: Now uses DataLayer for PostgreSQL/JSON abstraction
  */
 
 namespace AEIMS\Services;
 
 class ContentMarketplaceManager {
-    private $itemsFile;
-    private $purchasesFile;
+    private $dataLayer;
     private $notificationManager;
 
     public function __construct() {
-        $this->itemsFile = __DIR__ . '/../data/content_items.json';
-        $this->purchasesFile = __DIR__ . '/../data/content_purchases.json';
+        require_once __DIR__ . '/../includes/DataLayer.php';
+        $this->dataLayer = getDataLayer();
         $this->notificationManager = new NotificationManager();
-        $this->ensureDataFiles();
-    }
-
-    private function ensureDataFiles() {
-        if (!file_exists($this->itemsFile)) {
-            file_put_contents($this->itemsFile, json_encode([]));
-        }
-        if (!file_exists($this->purchasesFile)) {
-            file_put_contents($this->purchasesFile, json_encode([]));
-        }
-    }
-
-    private function loadItems() {
-        $data = file_get_contents($this->itemsFile);
-        $items = json_decode($data, true);
-        return $items ?: [];
-    }
-
-    private function saveItems($items) {
-        file_put_contents($this->itemsFile, json_encode($items, JSON_PRETTY_PRINT));
-    }
-
-    private function loadPurchases() {
-        $data = file_get_contents($this->purchasesFile);
-        $purchases = json_decode($data, true);
-        return $purchases ?: [];
-    }
-
-    private function savePurchases($purchases) {
-        file_put_contents($this->purchasesFile, json_encode($purchases, JSON_PRETTY_PRINT));
     }
 
     /**
      * Create a new content item
      */
     public function createItem($operatorId, $type, $title, $description, $price, $fileUrl, $thumbnailUrl = null, $tags = []) {
-        $items = $this->loadItems();
-
         $itemId = uniqid('item_', true);
         $newItem = [
             'item_id' => $itemId,
@@ -72,9 +40,7 @@ class ContentMarketplaceManager {
             'earnings' => 0.00
         ];
 
-        $items[] = $newItem;
-        $this->saveItems($items);
-
+        $this->dataLayer->saveContentItem($newItem);
         return $newItem;
     }
 
@@ -82,99 +48,60 @@ class ContentMarketplaceManager {
      * Get all items by operator
      */
     public function getOperatorItems($operatorId, $status = null) {
-        $items = $this->loadItems();
-
-        $filtered = array_filter($items, function($item) use ($operatorId, $status) {
-            if ($item['operator_id'] !== $operatorId) {
-                return false;
-            }
-            if ($status && $item['status'] !== $status) {
-                return false;
-            }
-            return true;
-        });
-
-        usort($filtered, function($a, $b) {
-            return strtotime($b['created_at']) - strtotime($a['created_at']);
-        });
-
-        return array_values($filtered);
+        $filters = ['operator_id' => $operatorId];
+        if ($status) {
+            $filters['status'] = $status;
+        }
+        return $this->dataLayer->searchContentItems($filters);
     }
 
     /**
      * Get all active items (for marketplace browsing)
      */
     public function getAllActiveItems($operatorId = null, $type = null) {
-        $items = $this->loadItems();
-
-        $filtered = array_filter($items, function($item) use ($operatorId, $type) {
-            if ($item['status'] !== 'active') {
-                return false;
-            }
-            if ($operatorId && $item['operator_id'] !== $operatorId) {
-                return false;
-            }
-            if ($type && $item['type'] !== $type) {
-                return false;
-            }
-            return true;
-        });
-
-        usort($filtered, function($a, $b) {
-            return strtotime($b['created_at']) - strtotime($a['created_at']);
-        });
-
-        return array_values($filtered);
+        $filters = ['status' => 'active'];
+        if ($operatorId) {
+            $filters['operator_id'] = $operatorId;
+        }
+        if ($type) {
+            $filters['type'] = $type;
+        }
+        return $this->dataLayer->searchContentItems($filters);
     }
 
     /**
      * Get a single item
      */
     public function getItem($itemId) {
-        $items = $this->loadItems();
-
-        foreach ($items as $item) {
-            if ($item['item_id'] === $itemId) {
-                return $item;
-            }
-        }
-
-        return null;
+        return $this->dataLayer->getContentItem($itemId);
     }
 
     /**
      * Update item
      */
     public function updateItem($itemId, $operatorId, $updates) {
-        $items = $this->loadItems();
-        $found = false;
+        $item = $this->dataLayer->getContentItem($itemId);
 
-        foreach ($items as &$item) {
-            if ($item['item_id'] === $itemId) {
-                // Verify ownership
-                if ($item['operator_id'] !== $operatorId) {
-                    throw new \Exception('Unauthorized');
-                }
-
-                // Update allowed fields
-                $allowedFields = ['title', 'description', 'price', 'thumbnail_url', 'tags', 'status'];
-                foreach ($allowedFields as $field) {
-                    if (isset($updates[$field])) {
-                        $item[$field] = $updates[$field];
-                    }
-                }
-
-                $item['updated_at'] = date('Y-m-d H:i:s');
-                $found = true;
-                break;
-            }
-        }
-
-        if (!$found) {
+        if (!$item) {
             throw new \Exception('Item not found');
         }
 
-        $this->saveItems($items);
+        // Verify ownership
+        if ($item['operator_id'] !== $operatorId) {
+            throw new \Exception('Unauthorized');
+        }
+
+        // Update allowed fields
+        $allowedFields = ['title', 'description', 'price', 'thumbnail_url', 'tags', 'status'];
+        foreach ($allowedFields as $field) {
+            if (isset($updates[$field])) {
+                $item[$field] = $updates[$field];
+            }
+        }
+
+        $item['updated_at'] = date('Y-m-d H:i:s');
+        $this->dataLayer->saveContentItem($item);
+
         return $item;
     }
 
@@ -182,39 +109,27 @@ class ContentMarketplaceManager {
      * Increment view count
      */
     public function incrementViews($itemId) {
-        $items = $this->loadItems();
+        $item = $this->dataLayer->getContentItem($itemId);
 
-        foreach ($items as &$item) {
-            if ($item['item_id'] === $itemId) {
-                $item['views']++;
-                $this->saveItems($items);
-                return $item;
-            }
+        if ($item) {
+            $item['views']++;
+            $this->dataLayer->saveContentItem($item);
+            return $item;
         }
+        return null;
     }
 
     /**
      * Purchase/access an item
      */
     public function purchaseItem($itemId, $customerId, $paymentAmount = 0.00) {
-        $items = $this->loadItems();
-        $purchases = $this->loadPurchases();
-
         // Check if already purchased
-        foreach ($purchases as $purchase) {
-            if ($purchase['item_id'] === $itemId && $purchase['customer_id'] === $customerId) {
-                return $purchase; // Already owns it
-            }
+        if ($this->dataLayer->hasContentPurchase($customerId, $itemId)) {
+            return $this->dataLayer->getContentPurchase($customerId, $itemId);
         }
 
         // Get item
-        $item = null;
-        foreach ($items as &$i) {
-            if ($i['item_id'] === $itemId) {
-                $item = &$i;
-                break;
-            }
-        }
+        $item = $this->dataLayer->getContentItem($itemId);
 
         if (!$item) {
             throw new \Exception('Item not found');
@@ -241,13 +156,12 @@ class ContentMarketplaceManager {
             'access_granted' => true
         ];
 
-        $purchases[] = $purchase;
-        $this->savePurchases($purchases);
+        $this->dataLayer->saveContentPurchase($purchase);
 
         // Update item stats
         $item['purchases']++;
         $item['earnings'] += $item['price'];
-        $this->saveItems($items);
+        $this->dataLayer->saveContentItem($item);
 
         // Notify operator of purchase
         if ($item['price'] > 0) {
@@ -267,12 +181,9 @@ class ContentMarketplaceManager {
      * Check if customer owns item
      */
     public function customerOwnsItem($customerId, $itemId) {
-        $purchases = $this->loadPurchases();
-
-        foreach ($purchases as $purchase) {
-            if ($purchase['item_id'] === $itemId && $purchase['customer_id'] === $customerId) {
-                return true;
-            }
+        // Check purchases
+        if ($this->dataLayer->hasContentPurchase($customerId, $itemId)) {
+            return true;
         }
 
         // Check if item is free
@@ -288,34 +199,14 @@ class ContentMarketplaceManager {
      * Get customer's purchased items
      */
     public function getCustomerPurchases($customerId) {
-        $purchases = $this->loadPurchases();
-
-        $filtered = array_filter($purchases, function($purchase) use ($customerId) {
-            return $purchase['customer_id'] === $customerId;
-        });
-
-        usort($filtered, function($a, $b) {
-            return strtotime($b['purchased_at']) - strtotime($a['purchased_at']);
-        });
-
-        return array_values($filtered);
+        return $this->dataLayer->getCustomerContentPurchases($customerId);
     }
 
     /**
      * Get operator's sales
      */
     public function getOperatorSales($operatorId) {
-        $purchases = $this->loadPurchases();
-
-        $filtered = array_filter($purchases, function($purchase) use ($operatorId) {
-            return $purchase['operator_id'] === $operatorId;
-        });
-
-        usort($filtered, function($a, $b) {
-            return strtotime($b['purchased_at']) - strtotime($a['purchased_at']);
-        });
-
-        return array_values($filtered);
+        return $this->dataLayer->getOperatorContentSales($operatorId);
     }
 
     /**
@@ -336,28 +227,21 @@ class ContentMarketplaceManager {
      * Delete item
      */
     public function deleteItem($itemId, $operatorId) {
-        $items = $this->loadItems();
-        $found = false;
+        $item = $this->dataLayer->getContentItem($itemId);
 
-        foreach ($items as &$item) {
-            if ($item['item_id'] === $itemId) {
-                // Verify ownership
-                if ($item['operator_id'] !== $operatorId) {
-                    throw new \Exception('Unauthorized');
-                }
-
-                $item['status'] = 'removed';
-                $item['updated_at'] = date('Y-m-d H:i:s');
-                $found = true;
-                break;
-            }
-        }
-
-        if (!$found) {
+        if (!$item) {
             throw new \Exception('Item not found');
         }
 
-        $this->saveItems($items);
+        // Verify ownership
+        if ($item['operator_id'] !== $operatorId) {
+            throw new \Exception('Unauthorized');
+        }
+
+        $item['status'] = 'removed';
+        $item['updated_at'] = date('Y-m-d H:i:s');
+        $this->dataLayer->saveContentItem($item);
+
         return true;
     }
 

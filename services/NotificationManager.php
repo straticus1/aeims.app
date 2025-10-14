@@ -5,32 +5,16 @@ namespace AEIMS\Services;
 /**
  * Notification Management Service
  * Handles real-time notifications for customers
+ * UPDATED: Now uses DataLayer for PostgreSQL/JSON abstraction
  */
 class NotificationManager
 {
-    private string $dataFile;
-    private array $notifications = [];
+    private $dataLayer;
 
     public function __construct()
     {
-        $this->dataFile = __DIR__ . '/../data/notifications.json';
-        $this->loadData();
-    }
-
-    private function loadData(): void
-    {
-        if (file_exists($this->dataFile)) {
-            $this->notifications = json_decode(file_get_contents($this->dataFile), true) ?? [];
-        }
-    }
-
-    private function saveData(): void
-    {
-        $dataDir = dirname($this->dataFile);
-        if (!is_dir($dataDir)) {
-            mkdir($dataDir, 0755, true);
-        }
-        file_put_contents($this->dataFile, json_encode($this->notifications, JSON_PRETTY_PRINT));
+        require_once __DIR__ . '/../includes/DataLayer.php';
+        $this->dataLayer = getDataLayer();
     }
 
     /**
@@ -55,9 +39,7 @@ class NotificationManager
             'timestamp' => time()
         ];
 
-        $this->notifications[] = $notification;
-        $this->saveData();
-
+        $this->dataLayer->saveNotification($notification);
         return $notification;
     }
 
@@ -66,20 +48,7 @@ class NotificationManager
      */
     public function getUnreadNotifications(string $userId): array
     {
-        $unread = [];
-
-        foreach ($this->notifications as $notification) {
-            if ($notification['user_id'] === $userId && !$notification['read']) {
-                $unread[] = $notification;
-            }
-        }
-
-        // Sort by timestamp (newest first)
-        usort($unread, function ($a, $b) {
-            return $b['timestamp'] - $a['timestamp'];
-        });
-
-        return $unread;
+        return $this->dataLayer->searchNotifications(['user_id' => $userId, 'read' => false]);
     }
 
     /**
@@ -87,20 +56,7 @@ class NotificationManager
      */
     public function getAllNotifications(string $userId, int $limit = 50): array
     {
-        $userNotifications = [];
-
-        foreach ($this->notifications as $notification) {
-            if ($notification['user_id'] === $userId) {
-                $userNotifications[] = $notification;
-            }
-        }
-
-        // Sort by timestamp (newest first)
-        usort($userNotifications, function ($a, $b) {
-            return $b['timestamp'] - $a['timestamp'];
-        });
-
-        return array_slice($userNotifications, 0, $limit);
+        return $this->dataLayer->searchNotifications(['user_id' => $userId], $limit);
     }
 
     /**
@@ -108,15 +64,14 @@ class NotificationManager
      */
     public function markAsRead(string $notificationId): bool
     {
-        foreach ($this->notifications as $index => $notification) {
-            if ($notification['notification_id'] === $notificationId) {
-                $this->notifications[$index]['read'] = true;
-                $this->saveData();
-                return true;
-            }
+        $notification = $this->dataLayer->getNotification($notificationId);
+        if (!$notification) {
+            return false;
         }
 
-        return false;
+        $notification['read'] = true;
+        $this->dataLayer->saveNotification($notification);
+        return true;
     }
 
     /**
@@ -124,20 +79,7 @@ class NotificationManager
      */
     public function markAllAsRead(string $userId): int
     {
-        $count = 0;
-
-        foreach ($this->notifications as $index => $notification) {
-            if ($notification['user_id'] === $userId && !$notification['read']) {
-                $this->notifications[$index]['read'] = true;
-                $count++;
-            }
-        }
-
-        if ($count > 0) {
-            $this->saveData();
-        }
-
-        return $count;
+        return $this->dataLayer->markAllNotificationsRead($userId);
     }
 
     /**
@@ -145,21 +87,7 @@ class NotificationManager
      */
     public function clearAll(string $userId): int
     {
-        $originalCount = count($this->notifications);
-
-        $this->notifications = array_filter($this->notifications, function ($notification) use ($userId) {
-            return $notification['user_id'] !== $userId;
-        });
-
-        $this->notifications = array_values($this->notifications); // Re-index array
-
-        $removedCount = $originalCount - count($this->notifications);
-
-        if ($removedCount > 0) {
-            $this->saveData();
-        }
-
-        return $removedCount;
+        return $this->dataLayer->clearUserNotifications($userId);
     }
 
     /**
@@ -167,20 +95,7 @@ class NotificationManager
      */
     public function deleteNotification(string $notificationId): bool
     {
-        $originalCount = count($this->notifications);
-
-        $this->notifications = array_filter($this->notifications, function ($notification) use ($notificationId) {
-            return $notification['notification_id'] !== $notificationId;
-        });
-
-        $this->notifications = array_values($this->notifications);
-
-        if (count($this->notifications) < $originalCount) {
-            $this->saveData();
-            return true;
-        }
-
-        return false;
+        return $this->dataLayer->deleteNotification($notificationId);
     }
 
     /**
@@ -188,15 +103,7 @@ class NotificationManager
      */
     public function getUnreadCount(string $userId): int
     {
-        $count = 0;
-
-        foreach ($this->notifications as $notification) {
-            if ($notification['user_id'] === $userId && !$notification['read']) {
-                $count++;
-            }
-        }
-
-        return $count;
+        return $this->dataLayer->getUnreadNotificationCount($userId);
     }
 
     /**
@@ -204,21 +111,6 @@ class NotificationManager
      */
     public function cleanupOldNotifications(): int
     {
-        $thirtyDaysAgo = time() - (30 * 24 * 60 * 60);
-        $originalCount = count($this->notifications);
-
-        $this->notifications = array_filter($this->notifications, function ($notification) use ($thirtyDaysAgo) {
-            return $notification['timestamp'] >= $thirtyDaysAgo;
-        });
-
-        $this->notifications = array_values($this->notifications);
-
-        $removedCount = $originalCount - count($this->notifications);
-
-        if ($removedCount > 0) {
-            $this->saveData();
-        }
-
-        return $removedCount;
+        return $this->dataLayer->cleanupOldNotifications(30);
     }
 }
