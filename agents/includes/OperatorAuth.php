@@ -10,9 +10,8 @@ class OperatorAuth {
     private $dataLayer;
 
     public function __construct() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        // SECURITY FIX: Don't start session here - let SecurityManager handle it
+        // Session should already be initialized by SecurityManager before this class is instantiated
 
         $configPath = dirname(__DIR__) . '/../config.php';
         if (!file_exists($configPath)) {
