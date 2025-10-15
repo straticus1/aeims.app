@@ -4,9 +4,12 @@
  * Customer authentication for nycflirts.com
  */
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// SECURITY FIX: Load SecurityManager FIRST to set session name to AEIMS_SESSION
+// NEVER call session_start() before SecurityManager
+require_once __DIR__ . '/../../includes/SecurityManager.php';
+$security = SecurityManager::getInstance();
+$security->initializeSecureSession();
+$security->applySecurityHeaders();
 
 require_once __DIR__ . '/../../includes/CustomerAuth.php';
 
@@ -22,19 +25,24 @@ if ($auth->isLoggedIn()) {
 
 // Handle login submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    if (empty($username) || empty($password)) {
-        $error_message = 'Please enter both username and password.';
+    // SECURITY: Verify CSRF token
+    if (!verify_csrf()) {
+        $error_message = 'Invalid security token. Please refresh the page and try again.';
     } else {
-        $result = $auth->authenticate($username, $password);
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
 
-        if ($result['success']) {
-            header('Location: ' . ($result['redirect'] ?? '/'));
-            exit();
+        if (empty($username) || empty($password)) {
+            $error_message = 'Please enter both username and password.';
         } else {
-            $error_message = $result['message'];
+            $result = $auth->authenticate($username, $password);
+
+            if ($result['success']) {
+                header('Location: ' . ($result['redirect'] ?? '/'));
+                exit();
+            } else {
+                $error_message = $result['message'];
+            }
         }
     }
 }
@@ -266,6 +274,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="">
+            <?php echo csrf_field(); ?>
+
             <div class="form-group">
                 <label for="username">Username or Email</label>
                 <input
