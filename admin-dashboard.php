@@ -1,7 +1,11 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Initialize session using SecurityManager to ensure correct session name
+require_once __DIR__ . '/includes/SecurityManager.php';
+$security = SecurityManager::getInstance();
+$security->initializeSecureSession();
 
 // Support both old auth system and new operator auth system
 $isLoggedIn = false;
@@ -32,6 +36,9 @@ $config = include __DIR__ . '/config.php';
 if (!is_array($config)) {
     $config = ['site' => ['name' => 'AEIMS']];
 }
+
+// Force output to start
+ob_start();
 ?>
 <!DOCTYPE html>
 <html>
@@ -128,3 +135,6 @@ if (!is_array($config)) {
     </div>
 </body>
 </html>
+<?php
+ob_end_flush();
+?>

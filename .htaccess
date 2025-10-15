@@ -13,6 +13,9 @@ RewriteRule ^agents/ - [L]
 # Agent routes that don't exist as files go through router
 RewriteRule ^agents/(.+)$ router.php [L,QSA]
 
+# Admin-dashboard.php - serve directly (MUST be before generic admin rule)
+RewriteRule ^admin-dashboard\.php$ - [L]
+
 # Admin routes - route through router.php
 RewriteRule ^admin(.*)$ router.php [L,QSA]
 

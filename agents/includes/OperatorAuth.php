@@ -89,6 +89,9 @@ class OperatorAuth {
         // Set session
         $this->createSession($operator, $username);
 
+        // CRITICAL FIX: Write session before redirect to prevent blank page
+        session_write_close();
+
         $this->logLoginAttempt($username, true, 'Successful login');
 
         return ['success' => true, 'redirect' => 'dashboard.php'];

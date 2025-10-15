@@ -61,7 +61,7 @@ class DataLayer {
         if ($this->useDatabase) {
             try {
                 $result = $this->db->fetchOne(
-                    "SELECT * FROM customers WHERE username = :username",
+                    "SELECT * FROM customers WHERE username = :username OR email = :username",
                     ['username' => $username]
                 );
                 if ($result) {
@@ -74,6 +74,44 @@ class DataLayer {
 
         // Fallback to JSON
         return $this->getCustomerFromJSON($username);
+    }
+
+    /**
+     * Format customer data from database to match JSON structure
+     */
+    private function formatCustomerFromDB($row) {
+        return [
+            'customer_id' => $row['customer_id'],
+            'id' => $row['customer_id'],
+            'username' => $row['username'],
+            'email' => $row['email'],
+            'password_hash' => $row['password_hash'],
+            'active' => $row['active'] ?? true,
+            'verified' => $row['verified'] ?? false,
+            'suspended' => $row['suspended'] ?? false,
+            'registration_ip' => $row['registration_ip'] ?? null,
+            'created_at' => $row['created_at'] ?? null,
+            'updated_at' => $row['updated_at'] ?? null,
+            'profile' => [
+                'display_name' => $row['display_name'] ?? $row['username'],
+                'bio' => $row['bio'] ?? '',
+                'avatar_url' => $row['avatar_url'] ?? '',
+                'age_verified' => $row['age_verified'] ?? false,
+                'preferences' => json_decode($row['preferences'] ?? '{}', true)
+            ],
+            'billing' => [
+                'credits' => floatval($row['credits'] ?? 0),
+                'total_spent' => floatval($row['total_spent'] ?? 0),
+                'payment_methods' => []
+            ],
+            'stats' => [
+                'total_sessions' => 0,
+                'total_messages' => 0,
+                'total_calls' => 0,
+                'last_activity' => $row['last_login_at'] ?? $row['updated_at']
+            ],
+            'metadata' => json_decode($row['metadata'] ?? '{}', true)
+        ];
     }
 
     /**
@@ -118,13 +156,13 @@ class DataLayer {
     // =========================================================================
 
     /**
-     * Get operator by username
+     * Get operator by username or email
      */
     public function getOperator($username) {
         if ($this->useDatabase) {
             try {
                 $result = $this->db->fetchOne(
-                    "SELECT * FROM operators WHERE username = :username",
+                    "SELECT * FROM operators WHERE username = :username OR email = :username",
                     ['username' => $username]
                 );
                 if ($result) {
@@ -136,6 +174,60 @@ class DataLayer {
         }
 
         return $this->getOperatorFromJSON($username);
+    }
+
+    /**
+     * Format operator data from database to match JSON structure
+     */
+    private function formatOperatorFromDB($row) {
+        return [
+            'id' => $row['operator_id'],
+            'operator_id' => $row['operator_id'],
+            'username' => $row['username'],
+            'email' => $row['email'],
+            'password_hash' => $row['password_hash'],
+            'name' => $row['display_name'] ?? $row['username'],
+            'display_name' => $row['display_name'] ?? $row['username'],
+            'active' => $row['active'] ?? true,
+            'verified' => $row['verified'] ?? false,
+            'online' => $row['online'] ?? false,
+            'available' => $row['available'] ?? false,
+            'created_at' => $row['created_at'] ?? null,
+            'updated_at' => $row['updated_at'] ?? null,
+            'profile' => [
+                'display_name' => $row['display_name'] ?? $row['username'],
+                'bio' => $row['bio'] ?? '',
+                'age' => $row['age'] ?? null,
+                'location' => $row['location'] ?? null,
+                'avatar_url' => $row['avatar_url'] ?? '',
+                'languages' => json_decode($row['languages'] ?? '[]', true),
+                'specialties' => json_decode($row['specialties'] ?? '[]', true),
+                'gallery_images' => json_decode($row['gallery_images'] ?? '[]', true),
+                'category' => $row['category'] ?? 'standard',
+                'available' => $row['available'] ?? false,
+                'status_message' => $row['status_message'] ?? null,
+                'display_names' => [],  // Legacy support
+                'bios' => []  // Legacy support
+            ],
+            'earnings' => [
+                'lifetime_total' => floatval($row['total_earned'] ?? 0),
+                'pending' => floatval($row['pending_payout'] ?? 0),
+                'available' => floatval($row['total_earned'] ?? 0) - floatval($row['pending_payout'] ?? 0)
+            ],
+            'settings' => [
+                'commission_rate' => floatval($row['commission_rate'] ?? 0.60),
+                'services' => []  // Will be populated from site-specific settings
+            ],
+            'stats' => [
+                'total_calls' => 0,
+                'total_messages' => 0,
+                'today' => [
+                    'rating' => 0,
+                    'calls' => 0
+                ]
+            ],
+            'metadata' => json_decode($row['metadata'] ?? '{}', true)
+        ];
     }
 
     /**
@@ -531,14 +623,6 @@ class DataLayer {
         }
     }
 
-    private function formatCustomerFromDB($row) {
-        $data = json_decode($row['metadata'] ?? '{}', true);
-        $data['customer_id'] = $row['customer_id'];
-        $data['username'] = $row['username'];
-        $data['email'] = $row['email'];
-        $data['password_hash'] = $row['password_hash'];
-        return $data;
-    }
 
     private function searchCustomersInDB($filters) {
         $where = [];
@@ -602,14 +686,6 @@ class DataLayer {
         }
     }
 
-    private function formatOperatorFromDB($row) {
-        $data = json_decode($row['metadata'] ?? '{}', true);
-        $data['operator_id'] = $row['operator_id'];
-        $data['username'] = $row['username'];
-        $data['email'] = $row['email'];
-        $data['password_hash'] = $row['password_hash'];
-        return $data;
-    }
 
     private function searchOperatorsInDB($siteId, $filters) {
         $where = [];

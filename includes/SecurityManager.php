@@ -234,6 +234,11 @@ class SecurityManager {
      * FIX #2: Safe redirect with validation
      */
     public function safeRedirect($url, $default = '/') {
+        // Write session data before redirect
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         if ($this->validateRedirectURL($url)) {
             header('Location: ' . $url);
             exit();

@@ -26,6 +26,11 @@ class DatabaseManager {
     private $connectionAvailable = false;
 
     private function __construct() {
+        // Load environment variables from .env file
+        if (file_exists(__DIR__ . '/../.env')) {
+            require_once __DIR__ . '/../load-env.php';
+        }
+
         $this->config = include __DIR__ . '/../config.php';
         // PHASE 1 FIX: Don't connect here! Wait until actually needed
         // This prevents auth from breaking if DB is unavailable
@@ -183,22 +188,21 @@ class DatabaseManager {
     }
 
     /**
-     * Insert record and return ID
+     * Insert record (returns true on success)
      */
     public function insert($table, $data) {
         $columns = array_keys($data);
         $placeholders = array_map(function($col) { return ":$col"; }, $columns);
 
         $sql = sprintf(
-            "INSERT INTO %s (%s) VALUES (%s) RETURNING id",
+            "INSERT INTO %s (%s) VALUES (%s)",
             $table,
             implode(', ', $columns),
             implode(', ', $placeholders)
         );
 
         $stmt = $this->query($sql, $data);
-        $result = $stmt->fetch();
-        return $result['id'] ?? null;
+        return true;
     }
 
     /**

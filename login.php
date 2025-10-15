@@ -40,8 +40,8 @@ $error_message = '';
 // Handle login submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // SECURITY FIX: CSRF Protection
-    // Temporarily disabled for login to fix redirect loop - cookie domain issue
-    // verify_csrf();
+    // Re-enabled after cookie domain fix in SecurityManager
+    verify_csrf();
 
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -61,18 +61,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (validateLogin($username, $password, $accounts)) {
                 $user = $accounts[$username];
 
-                // SECURITY FIX: Regenerate session ID to prevent session fixation
-                $security->regenerateSessionOnLogin();
-
                 // Reset rate limit on successful login
                 $security->resetRateLimit($ip, 'login');
 
-                // Set session variables
+                // Set session variables BEFORE regenerating session ID
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $username;
                 $_SESSION['user_type'] = $user['type'];
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['login_time'] = time();
+
+                // SECURITY FIX: Regenerate session ID to prevent session fixation (AFTER setting variables)
+                $security->regenerateSessionOnLogin();
 
                 // Log successful attempt
                 logLoginAttempt($username, true);

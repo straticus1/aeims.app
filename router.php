@@ -111,6 +111,15 @@ switch (true) {
     case strpos($host, 'aeims.app') !== false:
     default:
         // Default AEIMS platform
+        // Handle root-level PHP files directly (login.php, admin-dashboard.php, etc.)
+        if (preg_match('#^/([a-z0-9_-]+\.php)$#i', $uri, $matches)) {
+            $requestedFile = __DIR__ . '/' . $matches[1];
+            if (file_exists($requestedFile)) {
+                require_once $requestedFile;
+                return;
+            }
+        }
+
         // Handle agent portal routes
         if (preg_match('#^/agents/(.+)#', $uri, $matches)) {
             // SECURITY FIX: Proper directory traversal prevention

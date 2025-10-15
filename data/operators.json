@@ -1,206 +1,2381 @@
 {
     "operators": {
-        "op1": {
-            "operator_id": "op1",
-            "username": "SexyKitten",
-            "email": "kitten@example.com",
-            "category": "premium",
-            "verified": true,
-            "active": true,
-            "commission_rate": 0.65,
-            "created_at": "2024-01-01 00:00:00",
+        "0": {
+            "id": "op_001",
+            "name": "Sarah Johnson",
+            "email": "sarah@example.com",
+            "password_hash": "$2y$12$ruZelHJeg8Tru.ZsLgd39e58Oxif6RIWl8QmBSgR\/yUrb9diCM8D.",
+            "created_at": "2024-01-15T10:30:00Z",
+            "status": "active",
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "domains": {
+                "beastybitches.com": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-01-15"
+                },
+                "cavern.love": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-02-01"
+                },
+                "nitetext.com": {
+                    "role": "senior_operator",
+                    "active": true,
+                    "joined": "2024-01-20"
+                },
+                "nineinchesof.com": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-02-05"
+                },
+                "holyflirts.com": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-02-10"
+                }
+            },
+            "settings": {
+                "availability": {
+                    "status": "online",
+                    "auto_logout_minutes": 30,
+                    "domains": {
+                        "beastybitches.com": "online",
+                        "cavern.love": "online",
+                        "nitetext.com": "online",
+                        "nineinchesof.com": "online",
+                        "holyflirts.com": "online"
+                    }
+                },
+                "services": {
+                    "beastybitches.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99,
+                            "forwarding": "direct",
+                            "queue_priority": "high"
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99,
+                            "auto_response": false
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99,
+                            "max_concurrent": 3
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 4.99,
+                            "hd_enabled": true
+                        }
+                    },
+                    "cavern.love": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 3.99,
+                            "forwarding": "direct",
+                            "queue_priority": "medium"
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.29
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 2.49
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 5.99
+                        }
+                    },
+                    "nitetext.com": {
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.79,
+                            "auto_response": true
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.49,
+                            "max_concurrent": 5
+                        }
+                    },
+                    "nineinchesof.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 4.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.49
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 6.99
+                        },
+                        "cam": {
+                            "enabled": true,
+                            "rate_per_minute": 7.99,
+                            "hd_enabled": true
+                        }
+                    },
+                    "holyflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 3.49
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.19
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 2.29
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 5.49
+                        }
+                    }
+                }
+            },
             "profile": {
-                "bio": "Experienced cam model specializing in interactive shows",
-                "age": 25,
-                "location": "US",
-                "languages": [
-                    "English"
-                ],
+                "display_names": {
+                    "beastybitches.com": "Sarah",
+                    "cavern.love": "SarahLove",
+                    "nitetext.com": "NiteSarah",
+                    "nineinchesof.com": "SarahXXL",
+                    "holyflirts.com": "HolySarah"
+                },
+                "bios": {
+                    "beastybitches.com": "Fierce and wild - ready to unleash your desires",
+                    "cavern.love": "Your intimate companion for deep connections",
+                    "nitetext.com": "Late night texting queen - always ready to chat",
+                    "nineinchesof.com": "Size matters and I know how to handle it all",
+                    "holyflirts.com": "Forbidden desires and heavenly experiences"
+                },
                 "specialties": [
-                    "interactive_toys",
-                    "role_play",
-                    "fetish"
-                ]
-            }
-        },
-        "op2": {
-            "operator_id": "op2",
-            "username": "TechGoddess",
-            "email": "goddess@example.com",
-            "category": "elite",
-            "verified": true,
-            "active": true,
-            "commission_rate": 0.7,
-            "created_at": "2024-01-01 00:00:00",
-            "profile": {
-                "bio": "Elite performer with cutting-edge interactive technology",
-                "age": 28,
-                "location": "US",
+                    "girlfriend_experience",
+                    "roleplay",
+                    "domination"
+                ],
                 "languages": [
                     "English",
                     "Spanish"
                 ],
-                "specialties": [
-                    "tech_shows",
-                    "interactive_toys",
-                    "vr_experience"
-                ]
-            }
-        },
-        "op_68eb76056f6e9": {
-            "operator_id": "op_68eb76056f6e9",
-            "username": "NYCDiamond",
-            "email": "nycdiamond@nycflirts.com",
-            "category": "premium",
-            "verified": true,
-            "active": true,
-            "commission_rate": 0.65,
-            "rates": {
-                "call_rate": 6.99,
-                "message_rate": 1.49,
-                "content_rate": 7.99,
-                "toy_rates": []
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "34C",
+                    "body_type": "curvy",
+                    "height": "5'6\"",
+                    "hair_color": "brunette",
+                    "eye_color": "brown",
+                    "ethnicity": "latina"
+                }
             },
-            "created_at": "2025-10-12 09:33:57",
+            "stats": {
+                "today": {
+                    "calls": 12,
+                    "messages": 28,
+                    "minutes": 156,
+                    "earnings": 87.42,
+                    "rating": 4.9
+                }
+            },
+            "username": 0
+        },
+        "1": {
+            "id": "op_002",
+            "name": "Jessica Williams",
+            "email": "jessica@example.com",
+            "password_hash": "$2y$12$7dIAhGf5JU1z29v.qlXRKuOkH8dcFEY6uRs1r1mB3M3eWZt7W1ln.",
+            "created_at": "2024-02-01T14:20:00Z",
+            "status": "active",
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
+            "domains": {
+                "nycflirts.com": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-02-01"
+                },
+                "gfecalls.com": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-02-10"
+                },
+                "latenite.love": {
+                    "role": "senior_operator",
+                    "active": true,
+                    "joined": "2024-02-15"
+                },
+                "fantasyflirts.live": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-02-20"
+                }
+            },
+            "settings": {
+                "availability": {
+                    "status": "busy",
+                    "auto_logout_minutes": 45,
+                    "domains": {
+                        "nycflirts.com": "busy",
+                        "gfecalls.com": "online",
+                        "latenite.love": "online",
+                        "fantasyflirts.live": "away"
+                    }
+                },
+                "services": {
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 4.49,
+                            "forwarding": "direct"
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.39
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 2.79
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 6.49
+                        }
+                    },
+                    "gfecalls.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 5.99
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 8.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 3.99
+                        }
+                    },
+                    "latenite.love": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 3.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.29
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 2.49
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 5.99
+                        }
+                    },
+                    "fantasyflirts.live": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 4.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 3.49
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 7.49
+                        }
+                    }
+                }
+            },
             "profile": {
+                "display_names": {
+                    "nycflirts.com": "Jessica",
+                    "gfecalls.com": "JessGFE",
+                    "latenite.love": "LateJess",
+                    "fantasyflirts.live": "FantasyJess"
+                },
+                "bios": {
+                    "nycflirts.com": "Sweet NYC girl next door ready for fun",
+                    "gfecalls.com": "Your perfect girlfriend experience",
+                    "latenite.love": "Late night companion for intimate conversations",
+                    "fantasyflirts.live": "Making your fantasies come true"
+                },
+                "specialties": [
+                    "girlfriend_experience",
+                    "casual_chat",
+                    "roleplay"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "36D",
+                    "body_type": "athletic",
+                    "height": "5'7\"",
+                    "hair_color": "blonde",
+                    "eye_color": "blue",
+                    "ethnicity": "caucasian"
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 8,
+                    "messages": 45,
+                    "minutes": 98,
+                    "earnings": 52.8,
+                    "rating": 4.7
+                }
+            },
+            "username": 1
+        },
+        "2": {
+            "id": "op_003",
+            "name": "Amanda Rodriguez",
+            "email": "amanda@example.com",
+            "password_hash": "$2y$12$8dIAhGf5JU1z29v.qlXRKuOkH8dcFEY6uRs1r1mB3M3eWZt7W2mo.",
+            "created_at": "2024-01-10T09:15:00Z",
+            "status": "active",
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam",
+                "domination"
+            ],
+            "domains": {
+                "dommecats.com": {
+                    "role": "senior_operator",
+                    "active": true,
+                    "joined": "2024-01-10"
+                },
+                "fantasyflirts.live": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-01-15"
+                },
+                "nineinchesof.com": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-01-25"
+                },
+                "beastybitches.com": {
+                    "role": "operator",
+                    "active": true,
+                    "joined": "2024-02-01"
+                }
+            },
+            "settings": {
+                "availability": {
+                    "status": "away",
+                    "auto_logout_minutes": 60,
+                    "domains": {
+                        "dommecats.com": "online",
+                        "fantasyflirts.live": "away",
+                        "nineinchesof.com": "offline",
+                        "beastybitches.com": "busy"
+                    }
+                },
+                "services": {
+                    "dommecats.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 6.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 2.49
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 4.99
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 9.99
+                        },
+                        "domination": {
+                            "enabled": true,
+                            "rate_per_minute": 12.99
+                        }
+                    }
+                }
+            },
+            "profile": {
+                "display_names": {
+                    "dommecats.com": "MistressAmanda",
+                    "fantasyflirts.live": "AmandaFantasy",
+                    "nineinchesof.com": "AmandaXL",
+                    "beastybitches.com": "BeastyAmanda"
+                },
+                "bios": {
+                    "dommecats.com": "Experienced dominatrix - obedience is required",
+                    "fantasyflirts.live": "Your wildest fantasies await",
+                    "nineinchesof.com": "I know exactly what you need",
+                    "beastybitches.com": "Wild and untamed - can you handle me?"
+                },
+                "specialties": [
+                    "domination",
+                    "fetish",
+                    "roleplay",
+                    "bdsm"
+                ],
+                "languages": [
+                    "English",
+                    "Spanish"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "38DD",
+                    "body_type": "curvy",
+                    "height": "5'9\"",
+                    "hair_color": "black",
+                    "eye_color": "hazel",
+                    "ethnicity": "latina"
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 15,
+                    "messages": 67,
+                    "minutes": 203,
+                    "earnings": 125.67,
+                    "rating": 4.9
+                }
+            },
+            "username": 2
+        },
+        "nycdiamond": {
+            "id": "op_68eb76056f6e9",
+            "name": "NYC Diamond",
+            "email": "nycdiamond@nycflirts.com",
+            "password_hash": "$2y$12$fKMriPLQX8CAoxohh.oBGOkFj52BViBRozWaaM0izWA2PNXCQ.X8u",
+            "phone": "+1-555-0201",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-12T09:33:57+00:00",
+            "domains": {
+                "nycflirts.com": {
+                    "active": true
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
+            "profile": {
+                "display_names": {
+                    "nycflirts.com": "NYC Diamond"
+                },
+                "bios": {
+                    "nycflirts.com": "Premium NYC entertainer specializing in interactive shows"
+                },
                 "bio": "Premium NYC entertainer specializing in interactive shows",
                 "age": 26,
                 "location": "New York, NY",
+                "specialties": [
+                    "Interactive Toys",
+                    "Role Play",
+                    "GFE"
+                ],
                 "languages": [
                     "English"
                 ],
-                "specialties": [
-                    "interactive_toys",
-                    "role_play",
-                    "girlfriend_experience"
-                ]
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "34B",
+                    "body_type": "slim",
+                    "height": "5'5\"",
+                    "hair_color": "brown",
+                    "eye_color": "green",
+                    "ethnicity": "asian"
+                }
             },
-            "verified_at": "2025-10-12 09:33:57"
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true
+            },
+            "username": "nycdiamond"
         },
-        "op_68eb7605a82d3": {
-            "operator_id": "op_68eb7605a82d3",
-            "username": "NYCAngel",
+        "nycangel": {
+            "id": "op_68eb7605a82d3",
+            "name": "NYC Angel",
             "email": "nycangel@nycflirts.com",
-            "category": "standard",
+            "password_hash": "$2y$12$MwlyYDVlER.zy5uu365YFOuZwcX6aGXoehNgcA\/anhtnD3eo8BPsW",
+            "phone": "+1-555-0202",
+            "status": "active",
             "verified": true,
-            "active": true,
-            "commission_rate": 0.6,
-            "rates": {
-                "call_rate": 3.99,
-                "message_rate": 0.99,
-                "content_rate": 4.99,
-                "toy_rates": []
+            "created_at": "2025-10-12T09:33:57+00:00",
+            "domains": {
+                "nycflirts.com": {
+                    "active": true
+                }
             },
-            "created_at": "2025-10-12 09:33:57",
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
             "profile": {
+                "display_names": {
+                    "nycflirts.com": "NYC Angel"
+                },
+                "bios": {
+                    "nycflirts.com": "Sweet and fun NYC model ready to chat"
+                },
                 "bio": "Sweet and fun NYC model ready to chat",
                 "age": 23,
                 "location": "New York, NY",
-                "languages": [
-                    "English",
-                    "Spanish"
-                ],
                 "specialties": [
-                    "casual_chat",
-                    "girlfriend_experience",
-                    "dancing"
-                ]
+                    "Casual Chat",
+                    "GFE",
+                    "Dancing"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "32B",
+                    "body_type": "petite",
+                    "height": "5'3\"",
+                    "hair_color": "blonde",
+                    "eye_color": "blue",
+                    "ethnicity": "caucasian"
+                }
             },
-            "verified_at": "2025-10-12 09:33:57"
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true
+            },
+            "username": "nycangel"
         },
-        "op_68eb7605e1318": {
-            "operator_id": "op_68eb7605e1318",
-            "username": "ManhattanQueen",
+        "manhattanqueen": {
+            "id": "op_68eb7605e1318",
+            "name": "Manhattan Queen",
             "email": "manhattanqueen@flirts.nyc",
-            "category": "elite",
+            "password_hash": "$2y$12$LXscKULArCl8BwB51CocAuhQg.DfMs.DmLqdnNikHi4OORRKFga2O",
+            "phone": "+1-555-0203",
+            "status": "active",
             "verified": true,
-            "active": true,
-            "commission_rate": 0.75,
-            "rates": {
-                "call_rate": 19.99,
-                "message_rate": 4.99,
-                "content_rate": 24.99,
-                "toy_rates": []
+            "created_at": "2025-10-12T09:33:58+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true
+                }
             },
-            "created_at": "2025-10-12 09:33:57",
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "vr"
+            ],
             "profile": {
+                "display_names": {
+                    "flirts.nyc": "Manhattan Queen"
+                },
+                "bios": {
+                    "flirts.nyc": "Elite Manhattan entertainer with exclusive experiences"
+                },
                 "bio": "Elite Manhattan entertainer with exclusive experiences",
                 "age": 29,
                 "location": "Manhattan, NY",
+                "specialties": [
+                    "Luxury Experience",
+                    "Interactive Toys",
+                    "VR",
+                    "Fetish"
+                ],
                 "languages": [
                     "English",
                     "French"
                 ],
-                "specialties": [
-                    "luxury_experience",
-                    "interactive_toys",
-                    "vr_experience",
-                    "fetish"
-                ]
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "36C",
+                    "body_type": "athletic",
+                    "height": "5'8\"",
+                    "hair_color": "red",
+                    "eye_color": "green",
+                    "ethnicity": "caucasian"
+                }
             },
-            "verified_at": "2025-10-12 09:33:58"
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true
+            },
+            "username": "manhattanqueen"
         },
-        "op_68eb76062a6e0": {
-            "operator_id": "op_68eb76062a6e0",
-            "username": "BrooklynBabe",
+        "brooklynbabe": {
+            "id": "op_68eb76062a6e0",
+            "name": "Brooklyn Babe",
             "email": "brooklynbabe@flirts.nyc",
-            "category": "premium",
+            "password_hash": "$2y$12$9noSdDd28zdtO.TEptF.o.8yrKjhG78t5VvbqomRrFYcpaWX0qmlu",
+            "phone": "+1-555-0204",
+            "status": "active",
             "verified": true,
-            "active": true,
-            "commission_rate": 0.65,
-            "rates": {
-                "call_rate": 6.99,
-                "message_rate": 1.49,
-                "content_rate": 7.99,
-                "toy_rates": []
+            "created_at": "2025-10-12T09:33:58+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true
+                }
             },
-            "created_at": "2025-10-12 09:33:58",
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
             "profile": {
+                "display_names": {
+                    "flirts.nyc": "Brooklyn Babe"
+                },
+                "bios": {
+                    "flirts.nyc": "Brooklyn based entertainer with a playful side"
+                },
                 "bio": "Brooklyn based entertainer with a playful side",
                 "age": 24,
                 "location": "Brooklyn, NY",
+                "specialties": [
+                    "Role Play",
+                    "Interactive Toys",
+                    "Gaming"
+                ],
                 "languages": [
                     "English"
                 ],
-                "specialties": [
-                    "role_play",
-                    "interactive_toys",
-                    "gaming"
-                ]
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "34B",
+                    "body_type": "slim",
+                    "height": "5'4\"",
+                    "hair_color": "brown",
+                    "eye_color": "brown",
+                    "ethnicity": "mixed"
+                }
             },
-            "verified_at": "2025-10-12 09:33:58"
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true
+            },
+            "username": "brooklynbabe"
         },
-        "op_68eb760666e3d": {
-            "operator_id": "op_68eb760666e3d",
-            "username": "NYCGoddess",
+        "nycgoddess": {
+            "id": "op_68eb760666e3d",
+            "name": "NYC Goddess",
             "email": "nycgoddess@nycflirts.com",
-            "category": "elite",
+            "password_hash": "$2y$12$qWL7\/IWKpfZdy45Kr2aCh.42CTiqUUikglUPLe\/encE8GGysYK24O",
+            "phone": "+1-555-0205",
+            "status": "active",
             "verified": true,
-            "active": true,
-            "commission_rate": 0.75,
-            "rates": {
-                "call_rate": 19.99,
-                "message_rate": 4.99,
-                "content_rate": 24.99,
-                "toy_rates": []
+            "created_at": "2025-10-12T09:33:58+00:00",
+            "domains": {
+                "nycflirts.com": {
+                    "active": true
+                }
             },
-            "created_at": "2025-10-12 09:33:58",
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "domination"
+            ],
             "profile": {
+                "display_names": {
+                    "nycflirts.com": "NYC Goddess"
+                },
+                "bios": {
+                    "nycflirts.com": "Elite NYC goddess offering premium interactive experiences"
+                },
                 "bio": "Elite NYC goddess offering premium interactive experiences",
                 "age": 27,
                 "location": "New York, NY",
+                "specialties": [
+                    "Luxury Experience",
+                    "Fetish",
+                    "Domination",
+                    "Interactive Toys"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "38D",
+                    "body_type": "curvy",
+                    "height": "5'10\"",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "african_american"
+                }
+            },
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true
+            },
+            "username": "nycgoddess"
+        },
+        "scarletrose": {
+            "id": "op_scarletrose_001",
+            "name": "Scarlet Rose",
+            "email": "scarlet@flirts.nyc",
+            "password_hash": "$2y$12$LXscKULArCl8BwB51CocAuhQg.DfMs.DmLqdnNikHi4OORRKFga2O",
+            "phone": "+1-555-0301",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T10:00:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Scarlet Rose"
+                },
+                "bios": {
+                    "flirts.nyc": "Sultry redhead with a passion for pleasure - let's explore together"
+                },
+                "bio": "Sultry redhead with a passion for pleasure - let's explore together",
+                "age": 28,
+                "location": "Manhattan, NY",
+                "specialties": [
+                    "GFE",
+                    "Role Play",
+                    "Sensual Chat"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "36C",
+                    "body_type": "curvy",
+                    "height": "5'7\"",
+                    "hair_color": "red",
+                    "eye_color": "green",
+                    "ethnicity": "caucasian"
+                }
+            },
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true,
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 4.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.49
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 6.99
+                        }
+                    }
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 18,
+                    "messages": 42,
+                    "minutes": 187,
+                    "earnings": 142.35,
+                    "rating": 4.9
+                }
+            },
+            "username": "scarletrose"
+        },
+        "asiangoddess": {
+            "id": "op_asiangoddess_002",
+            "name": "Asian Goddess",
+            "email": "asian@flirts.nyc",
+            "password_hash": "$2y$12$LXscKULArCl8BwB51CocAuhQg.DfMs.DmLqdnNikHi4OORRKFga2O",
+            "phone": "+1-555-0302",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T10:15:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Asian Goddess"
+                },
+                "bios": {
+                    "flirts.nyc": "Exotic beauty ready to fulfill your fantasies - I aim to please"
+                },
+                "bio": "Exotic beauty ready to fulfill your fantasies - I aim to please",
+                "age": 25,
+                "location": "Queens, NY",
+                "specialties": [
+                    "Interactive Toys",
+                    "Submissive",
+                    "Asian Fantasy"
+                ],
+                "languages": [
+                    "English",
+                    "Mandarin"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "32A",
+                    "body_type": "petite",
+                    "height": "5'2\"",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "asian"
+                }
+            },
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true,
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 5.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 3.49
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 7.99
+                        },
+                        "cam": {
+                            "enabled": true,
+                            "rate_per_minute": 8.99
+                        }
+                    }
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 14,
+                    "messages": 56,
+                    "minutes": 143,
+                    "earnings": 156.78,
+                    "rating": 4.8
+                }
+            },
+            "username": "asiangoddess"
+        },
+        "latinavixen": {
+            "id": "op_latinavixen_003",
+            "name": "Latina Vixen",
+            "email": "latina@flirts.nyc",
+            "password_hash": "$2y$12$LXscKULArCl8BwB51CocAuhQg.DfMs.DmLqdnNikHi4OORRKFga2O",
+            "phone": "+1-555-0303",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T10:30:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Latina Vixen"
+                },
+                "bios": {
+                    "flirts.nyc": "Spicy Latina with curves for days - come play with fire"
+                },
+                "bio": "Spicy Latina with curves for days - come play with fire",
+                "age": 30,
+                "location": "Bronx, NY",
+                "specialties": [
+                    "Dancing",
+                    "Twerking",
+                    "Domination"
+                ],
+                "languages": [
+                    "English",
+                    "Spanish"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "40DD",
+                    "body_type": "bbw",
+                    "height": "5'6\"",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "latina"
+                }
+            },
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true,
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 4.49
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.29
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 2.79
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 6.49
+                        }
+                    }
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 22,
+                    "messages": 38,
+                    "minutes": 205,
+                    "earnings": 178.92,
+                    "rating": 4.9
+                }
+            },
+            "username": "latinavixen"
+        },
+        "bigmike": {
+            "id": "op_bigmike_004",
+            "name": "Big Mike",
+            "email": "bigmike@flirts.nyc",
+            "password_hash": "$2y$12$LXscKULArCl8BwB51CocAuhQg.DfMs.DmLqdnNikHi4OORRKFga2O",
+            "phone": "+1-555-0304",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T10:45:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Big Mike"
+                },
+                "bios": {
+                    "flirts.nyc": "NYC stud with what you need - satisfaction guaranteed"
+                },
+                "bio": "NYC stud with what you need - satisfaction guaranteed",
+                "age": 32,
+                "location": "Manhattan, NY",
+                "specialties": [
+                    "Dominant",
+                    "Dirty Talk",
+                    "Size Play"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "male",
+                    "dick_size": "9in",
+                    "body_type": "muscular",
+                    "height": "6'2\"",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "african_american"
+                }
+            },
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true,
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 5.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 3.99
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 7.99
+                        }
+                    }
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 15,
+                    "messages": 31,
+                    "minutes": 167,
+                    "earnings": 134.56,
+                    "rating": 4.7
+                }
+            },
+            "username": "bigmike"
+        },
+        "dominicstud": {
+            "id": "op_dominicstud_005",
+            "name": "Dominic",
+            "email": "dominic@flirts.nyc",
+            "password_hash": "$2y$12$LXscKULArCl8BwB51CocAuhQg.DfMs.DmLqdnNikHi4OORRKFga2O",
+            "phone": "+1-555-0305",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T11:00:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Dominic"
+                },
+                "bios": {
+                    "flirts.nyc": "Athletic Italian stallion ready to make you weak - let's play"
+                },
+                "bio": "Athletic Italian stallion ready to make you weak - let's play",
+                "age": 28,
+                "location": "Staten Island, NY",
+                "specialties": [
+                    "GFE",
+                    "Romance",
+                    "Sensual"
+                ],
                 "languages": [
                     "English",
                     "Italian"
                 ],
-                "specialties": [
-                    "luxury_experience",
-                    "fetish",
-                    "domination",
-                    "interactive_toys"
-                ]
+                "physical_attributes": {
+                    "gender": "male",
+                    "dick_size": "8in",
+                    "body_type": "athletic",
+                    "height": "6'0\"",
+                    "hair_color": "brown",
+                    "eye_color": "blue",
+                    "ethnicity": "caucasian"
+                }
             },
-            "verified_at": "2025-10-12 09:33:58"
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true,
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 5.49
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.79
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 3.49
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 7.49
+                        }
+                    }
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 11,
+                    "messages": 27,
+                    "minutes": 124,
+                    "earnings": 98.43,
+                    "rating": 4.8
+                }
+            },
+            "username": "dominicstud"
+        },
+        "ebonydream": {
+            "id": "op_ebonydream_006",
+            "name": "Ebony Dream",
+            "email": "ebony@nycflirts.com",
+            "password_hash": "$2y$12$LXscKULArCl8BwB51CocAuhQg.DfMs.DmLqdnNikHi4OORRKFga2O",
+            "phone": "+1-555-0306",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T11:15:00+00:00",
+            "domains": {
+                "nycflirts.com": {
+                    "active": true
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
+            "profile": {
+                "display_names": {
+                    "nycflirts.com": "Ebony Dream"
+                },
+                "bios": {
+                    "nycflirts.com": "Chocolate beauty with a sweet personality - your dreams come true"
+                },
+                "bio": "Chocolate beauty with a sweet personality - your dreams come true",
+                "age": 26,
+                "location": "Harlem, NY",
+                "specialties": [
+                    "GFE",
+                    "Twerking",
+                    "Roleplay"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "36D",
+                    "body_type": "curvy",
+                    "height": "5'8\"",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "african_american"
+                }
+            },
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true,
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 4.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.49
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 6.99
+                        }
+                    }
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 19,
+                    "messages": 44,
+                    "minutes": 198,
+                    "earnings": 163.45,
+                    "rating": 4.9
+                }
+            },
+            "username": "ebonydream"
+        },
+        "blondebombshell": {
+            "id": "op_blondebombshell_007",
+            "name": "Blonde Bombshell",
+            "email": "blonde@nycflirts.com",
+            "password_hash": "$2y$12$LXscKULArCl8BwB51CocAuhQg.DfMs.DmLqdnNikHi4OORRKFga2O",
+            "phone": "+1-555-0307",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T11:30:00+00:00",
+            "domains": {
+                "nycflirts.com": {
+                    "active": true
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "nycflirts.com": "Blonde Bombshell"
+                },
+                "bios": {
+                    "nycflirts.com": "All-American girl with a naughty side - let me blow your mind"
+                },
+                "bio": "All-American girl with a naughty side - let me blow your mind",
+                "age": 24,
+                "location": "Upper East Side, NY",
+                "specialties": [
+                    "Interactive Toys",
+                    "Submissive",
+                    "College Girl"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "34C",
+                    "body_type": "athletic",
+                    "height": "5'6\"",
+                    "hair_color": "blonde",
+                    "eye_color": "blue",
+                    "ethnicity": "caucasian"
+                }
+            },
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true,
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 5.49
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.79
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 3.29
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 7.49
+                        },
+                        "cam": {
+                            "enabled": true,
+                            "rate_per_minute": 8.49
+                        }
+                    }
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 16,
+                    "messages": 52,
+                    "minutes": 174,
+                    "earnings": 147.89,
+                    "rating": 4.8
+                }
+            },
+            "username": "blondebombshell"
+        },
+        "tigerlily": {
+            "id": "op_tigerlily_008",
+            "name": "Tiger Lily",
+            "email": "tiger@nycflirts.com",
+            "password_hash": "$2y$12$LXscKULArCl8BwB51CocAuhQg.DfMs.DmLqdnNikHi4OORRKFga2O",
+            "phone": "+1-555-0308",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T11:45:00+00:00",
+            "domains": {
+                "nycflirts.com": {
+                    "active": true
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video"
+            ],
+            "profile": {
+                "display_names": {
+                    "nycflirts.com": "Tiger Lily"
+                },
+                "bios": {
+                    "nycflirts.com": "Fierce mixed beauty - exotic and wild, ready to pounce"
+                },
+                "bio": "Fierce mixed beauty - exotic and wild, ready to pounce",
+                "age": 27,
+                "location": "Chelsea, NY",
+                "specialties": [
+                    "Domination",
+                    "Fetish",
+                    "Roleplay"
+                ],
+                "languages": [
+                    "English",
+                    "Portuguese"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "bra_size": "34B",
+                    "body_type": "slim",
+                    "height": "5'5\"",
+                    "hair_color": "brown",
+                    "eye_color": "hazel",
+                    "ethnicity": "mixed"
+                }
+            },
+            "settings": {
+                "calls_enabled": true,
+                "text_enabled": true,
+                "chat_enabled": true,
+                "video_enabled": true,
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 5.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 1.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 3.79
+                        },
+                        "video": {
+                            "enabled": true,
+                            "rate_per_minute": 7.99
+                        }
+                    }
+                }
+            },
+            "stats": {
+                "today": {
+                    "calls": 13,
+                    "messages": 39,
+                    "minutes": 156,
+                    "earnings": 128.67,
+                    "rating": 4.9
+                }
+            },
+            "username": "tigerlily"
+        },
+        "op_test_001": {
+            "id": "op_test_001",
+            "name": "Jade Martinez",
+            "username": "testop1",
+            "email": "testop1@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:00:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Jade",
+                    "nycflirts.com": "Jade Martinez"
+                },
+                "bios": {
+                    "flirts.nyc": "Sweet and sassy Latina ready for fun - let's chat!",
+                    "nycflirts.com": "Your dream girl next door - flirty, fun, and always online"
+                },
+                "specialties": [
+                    "Flirty Chat",
+                    "Role Play",
+                    "Girlfriend Experience"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "body_type": "athletic",
+                    "height": "5'4\"",
+                    "bra_size": "34B",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "latina"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
+        },
+        "op_test_002": {
+            "id": "op_test_002",
+            "name": "Sophia Chen",
+            "username": "testop2",
+            "email": "testop2@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:05:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Sophia",
+                    "nycflirts.com": "Sophia Chen"
+                },
+                "bios": {
+                    "flirts.nyc": "Petite Asian beauty with a playful spirit",
+                    "nycflirts.com": "Let's explore your fantasies together - I'm all yours"
+                },
+                "specialties": [
+                    "Submissive",
+                    "Role Play",
+                    "Asian Fantasy"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "body_type": "petite",
+                    "height": "5'2\"",
+                    "bra_size": "32A",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "asian"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
+        },
+        "op_test_003": {
+            "id": "op_test_003",
+            "name": "Aisha Johnson",
+            "username": "testop3",
+            "email": "testop3@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:10:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Aisha",
+                    "nycflirts.com": "Aisha Johnson"
+                },
+                "bios": {
+                    "flirts.nyc": "Confident ebony goddess here to fulfill your desires",
+                    "nycflirts.com": "Chocolate beauty with curves in all the right places"
+                },
+                "specialties": [
+                    "Girlfriend Experience",
+                    "Dirty Talk",
+                    "Sensual Chat"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "body_type": "curvy",
+                    "height": "5'6\"",
+                    "bra_size": "36C",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "african_american"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
+        },
+        "op_test_004": {
+            "id": "op_test_004",
+            "name": "Emma Thompson",
+            "username": "testop4",
+            "email": "testop4@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:15:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Emma",
+                    "nycflirts.com": "Emma Thompson"
+                },
+                "bios": {
+                    "flirts.nyc": "Blonde bombshell ready to blow your mind",
+                    "nycflirts.com": "British charm meets NYC attitude - let's have fun"
+                },
+                "specialties": [
+                    "Role Play",
+                    "Fetish",
+                    "Domination"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "body_type": "slim",
+                    "height": "5'8\"",
+                    "bra_size": "34C",
+                    "hair_color": "blonde",
+                    "eye_color": "blue",
+                    "ethnicity": "caucasian"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
+        },
+        "op_test_005": {
+            "id": "op_test_005",
+            "name": "Marcus Washington",
+            "username": "testop5",
+            "email": "testop5@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:20:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Marcus",
+                    "nycflirts.com": "Marcus Washington"
+                },
+                "bios": {
+                    "flirts.nyc": "Strong, confident man ready to make your fantasies real",
+                    "nycflirts.com": "Athletic stud who knows how to satisfy - let's connect"
+                },
+                "specialties": [
+                    "Dominant",
+                    "Dirty Talk",
+                    "Girlfriend Experience"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "male",
+                    "body_type": "muscular",
+                    "height": "6'1\"",
+                    "dick_size": "8in",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "african_american"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
+        },
+        "op_test_006": {
+            "id": "op_test_006",
+            "name": "Isabella Garcia",
+            "username": "testop6",
+            "email": "testop6@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:25:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Isabella",
+                    "nycflirts.com": "Isabella Garcia"
+                },
+                "bios": {
+                    "flirts.nyc": "Passionate Latina ready to spice up your night",
+                    "nycflirts.com": "Sultry and seductive - I'll make you feel amazing"
+                },
+                "specialties": [
+                    "Dancing",
+                    "Twerking",
+                    "Role Play"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "body_type": "curvy",
+                    "height": "5'5\"",
+                    "bra_size": "38D",
+                    "hair_color": "brown",
+                    "eye_color": "hazel",
+                    "ethnicity": "latina"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
+        },
+        "op_test_007": {
+            "id": "op_test_007",
+            "name": "Olivia Kim",
+            "username": "testop7",
+            "email": "testop7@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:30:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Olivia",
+                    "nycflirts.com": "Olivia Kim"
+                },
+                "bios": {
+                    "flirts.nyc": "Korean beauty with a sweet smile and naughty thoughts",
+                    "nycflirts.com": "Let me be your secret fantasy come true"
+                },
+                "specialties": [
+                    "Submissive",
+                    "Girlfriend Experience",
+                    "Cosplay"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "body_type": "slim",
+                    "height": "5'3\"",
+                    "bra_size": "32B",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "asian"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
+        },
+        "op_test_008": {
+            "id": "op_test_008",
+            "name": "Ryan O'Connor",
+            "username": "testop8",
+            "email": "testop8@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:35:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Ryan",
+                    "nycflirts.com": "Ryan O'Connor"
+                },
+                "bios": {
+                    "flirts.nyc": "Irish charmer with a body built for pleasure",
+                    "nycflirts.com": "Rugged and romantic - let me sweep you off your feet"
+                },
+                "specialties": [
+                    "Romance",
+                    "Girlfriend Experience",
+                    "Dirty Talk"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "male",
+                    "body_type": "athletic",
+                    "height": "6'0\"",
+                    "dick_size": "7in",
+                    "hair_color": "red",
+                    "eye_color": "green",
+                    "ethnicity": "caucasian"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
+        },
+        "op_test_009": {
+            "id": "op_test_009",
+            "name": "Maya Patel",
+            "username": "testop9",
+            "email": "testop9@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:40:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Maya",
+                    "nycflirts.com": "Maya Patel"
+                },
+                "bios": {
+                    "flirts.nyc": "Exotic Indian beauty with a mysterious allure",
+                    "nycflirts.com": "Sensual and sophisticated - your perfect escape"
+                },
+                "specialties": [
+                    "Sensual Chat",
+                    "Role Play",
+                    "Girlfriend Experience"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "body_type": "slim",
+                    "height": "5'6\"",
+                    "bra_size": "34B",
+                    "hair_color": "black",
+                    "eye_color": "brown",
+                    "ethnicity": "indian"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
+        },
+        "op_test_010": {
+            "id": "op_test_010",
+            "name": "Chloe Anderson",
+            "username": "testop10",
+            "email": "testop10@aeims.test",
+            "password_hash": "$2y$12$wnUXdvy3\/LLyDw0PNGqY8Oq9TLKGfHPnsxstDrA18BEvEeSKby8aa",
+            "status": "active",
+            "verified": true,
+            "created_at": "2025-10-13T12:45:00+00:00",
+            "domains": {
+                "flirts.nyc": {
+                    "active": true,
+                    "role": "operator"
+                },
+                "nycflirts.com": {
+                    "active": true,
+                    "role": "operator"
+                }
+            },
+            "services": [
+                "calls",
+                "text",
+                "chat",
+                "video",
+                "cam"
+            ],
+            "profile": {
+                "display_names": {
+                    "flirts.nyc": "Chloe",
+                    "nycflirts.com": "Chloe Anderson"
+                },
+                "bios": {
+                    "flirts.nyc": "Young, fun, and full of energy - let's play!",
+                    "nycflirts.com": "College girl ready to make your wildest dreams reality"
+                },
+                "specialties": [
+                    "Submissive",
+                    "College Girl",
+                    "Interactive Toys"
+                ],
+                "languages": [
+                    "English"
+                ],
+                "physical_attributes": {
+                    "gender": "female",
+                    "body_type": "petite",
+                    "height": "5'4\"",
+                    "bra_size": "32A",
+                    "hair_color": "blonde",
+                    "eye_color": "blue",
+                    "ethnicity": "caucasian"
+                },
+                "profile_picture": "\/assets\/images\/operators\/placeholder.jpg"
+            },
+            "settings": {
+                "availability": {
+                    "status": "online"
+                },
+                "services": {
+                    "flirts.nyc": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    },
+                    "nycflirts.com": {
+                        "calls": {
+                            "enabled": true,
+                            "rate_per_minute": 2.99
+                        },
+                        "text": {
+                            "enabled": true,
+                            "rate_per_message": 0.99
+                        },
+                        "chat": {
+                            "enabled": true,
+                            "rate_per_minute": 1.99
+                        }
+                    }
+                }
+            }
         }
     }
 }
