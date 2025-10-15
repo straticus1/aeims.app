@@ -86,16 +86,16 @@ class SecurityManager {
         session_name($sessionConfig['name'] ?? 'AEIMS_SESSION');
         session_start();
 
-        // Regenerate session ID on first access
+        // Initialize session tracking (no regeneration needed - session_start() already created random ID)
         if (!isset($_SESSION['initialized'])) {
-            session_regenerate_id(true);
             $_SESSION['initialized'] = true;
             $_SESSION['created_at'] = time();
             $_SESSION['last_regeneration'] = time();
         }
 
         // Periodically regenerate session ID (every 30 minutes)
-        if (isset($_SESSION['last_regeneration']) &&
+        // Only regenerate on established sessions to avoid double Set-Cookie headers
+        if (isset($_SESSION['initialized']) && isset($_SESSION['last_regeneration']) &&
             (time() - $_SESSION['last_regeneration']) > 1800) {
             session_regenerate_id(true);
             $_SESSION['last_regeneration'] = time();
