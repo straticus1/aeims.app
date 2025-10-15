@@ -4,15 +4,18 @@
  * Cross-Domain Management Interface
  */
 
+// SECURITY FIX: Load SecurityManager for consistent session handling
+require_once __DIR__ . '/../includes/SecurityManager.php';
+$security = SecurityManager::getInstance();
+
+// Initialize secure session (same as login.php)
+$security->initializeSecureSession();
+$security->applySecurityHeaders();
+
 require_once 'includes/OperatorAuth.php';
 
-// OperatorAuth handles session internally, but ensure no duplicate starts
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 $auth = new OperatorAuth();
-$config = include 'config.php';
+$config = include __DIR__ . '/../config.php';
 
 // Require operator login
 $auth->requireLogin();
