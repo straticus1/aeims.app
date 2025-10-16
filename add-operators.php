@@ -22,20 +22,31 @@ try {
 
 echo "✅ Connected to database\n\n";
 
-// Add username column if it doesn't exist
-try {
-    $pdo->exec("ALTER TABLE operators ADD COLUMN IF NOT EXISTS username VARCHAR(255)");
-    echo "✅ Added/checked username column\n";
-} catch (PDOException $e) {
-    echo "Note: " . $e->getMessage() . "\n";
-}
+// Check if operators table exists
+$tableCheck = $pdo->query("SELECT to_regclass('public.operators')");
+$tableExists = $tableCheck->fetchColumn() !== null;
 
-// Create unique index on username
-try {
-    $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS operators_username_idx ON operators(username)");
-    echo "✅ Created username index\n\n";
-} catch (PDOException $e) {
-    echo "Note: " . $e->getMessage() . "\n\n";
+if (!$tableExists) {
+    echo "Creating operators table...\n";
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS operators (
+            id VARCHAR(50) PRIMARY KEY,
+            username VARCHAR(255) UNIQUE NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            name VARCHAR(255),
+            phone VARCHAR(50),
+            status VARCHAR(50) DEFAULT 'active',
+            verified BOOLEAN DEFAULT false,
+            domains JSONB,
+            services JSONB,
+            profile JSONB,
+            settings JSONB,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+    echo "✅ Table created\n\n";
 }
 
 // Demo operators
@@ -86,9 +97,8 @@ $operators = [
 
 $stmt = $pdo->prepare("
     INSERT INTO operators (id, username, email, password_hash, name, phone, status, verified, domains, services, profile, settings)
-    VALUES (:id, :username, :email, :password_hash, :name, :phone, :status, :verified, :domains::jsonb, :services::jsonb, :profile::jsonb, :settings::jsonb)
-    ON CONFLICT (id) DO UPDATE SET
-        username = EXCLUDED.username,
+    VALUES (:id, :username, :email, :password_hash, :name, :phone, :status, :verified, :domains, :services, :profile, :settings)
+    ON CONFLICT (username) DO UPDATE SET
         password_hash = EXCLUDED.password_hash,
         updated_at = CURRENT_TIMESTAMP
 ");

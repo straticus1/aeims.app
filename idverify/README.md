@@ -1,8 +1,8 @@
-# ID Verification Microservice
+# ID Verification Microservice v2.4
 ## Government ID Verification Services by After Dark Systems
 
 ### Overview
-Standalone API-based US state and federal government ID validation service accessible at `idcheck.aeims.app` and `idverify.aeims.app`.
+Standalone API-based US state and federal government ID validation service accessible at `idcheck.aeims.app` and `idverify.aeims.app`. Enhanced with improved security, performance optimizations, and comprehensive audit logging.
 
 ### Features
 1. **API Key Management** - Secure token-based authentication

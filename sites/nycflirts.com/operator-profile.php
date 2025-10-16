@@ -461,16 +461,18 @@ foreach ($site['categories'] as $key => $category) {
             </div>
 
             <div class="sidebar">
+                <?php
+                // Integrated Call Button Component
+                $domain = 'nycflirts.com';
+                include __DIR__ . '/../shared/components/call-button.php';
+                ?>
+
                 <div class="action-card">
                     <h3 style="color: <?= $site['theme']['primary_color'] ?>; margin-bottom: 1rem;">Start Session</h3>
 
                     <a href="/chat.php?operator_id=<?= $operator['operator_id'] ?>" class="btn btn-primary">
                         💬 Start Chat
                     </a>
-
-                    <button class="btn btn-secondary" onclick="startVoiceCall('<?= $operator['operator_id'] ?>')">
-                        📞 Voice Call
-                    </button>
 
                     <button class="btn btn-secondary" onclick="startVideoCall('<?= $operator['operator_id'] ?>')">
                         📹 Video Call

@@ -5,6 +5,42 @@ All notable changes to the AEIMS Showcase Website will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2025-10-16
+
+### Added
+- **Enhanced Documentation Management**: Comprehensive updates to all README and CHANGELOG files
+  - Updated version numbers and feature descriptions across all platform documentation
+  - Enhanced ID verification microservice documentation with v2.4 improvements
+  - Updated platform overview with latest multi-site and infrastructure features
+  - Comprehensive changelog maintenance and version history updates
+- **ID Verification Improvements**: Enhanced identity verification microservice capabilities
+  - Improved security features and performance optimizations
+  - Enhanced audit logging and comprehensive tracking
+  - Better integration with AEIMS operator onboarding workflow
+  - Advanced error handling and validation improvements
+- **Platform Stability Enhancements**: Continued improvements to core platform reliability
+  - Enhanced multi-site infrastructure performance and stability
+  - Improved authentication system reliability and security
+  - Better session management and timeout handling
+  - Enhanced error recovery and system resilience
+
+### Enhanced
+- **Documentation Quality**: Improved clarity, completeness, and technical accuracy
+- **Version Management**: Better version tracking and release documentation consistency
+- **Platform Branding**: Continued professional presentation and enterprise credibility
+- **Security Features**: Advanced security measures and authentication improvements
+
+### Fixed
+- **Documentation Consistency**: Resolved version mismatches and outdated references
+- **Platform Integration**: Improved integration between different platform components
+- **Performance Issues**: Optimized system performance and response times
+
+### Technical Improvements
+- **Documentation Architecture**: Enhanced organization and cross-referencing
+- **Version Control**: Improved changelog management and version tracking
+- **Code Quality**: Better error handling and validation throughout platform
+- **Maintainability**: Enhanced code organization and documentation structure
+
 ## [2.3.0] - 2024-10-14
 
 ### Added

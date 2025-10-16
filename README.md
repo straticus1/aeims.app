@@ -1,6 +1,6 @@
-# AEIMS Platform v2.3.0
+# AEIMS Platform v2.4.0
 
-A comprehensive adult entertainment platform management system by After Dark Systems, featuring complete multi-site infrastructure, advanced authentication, content marketplace, and production-ready deployment capabilities.
+A comprehensive adult entertainment platform management system by After Dark Systems, featuring complete multi-site infrastructure, advanced authentication, content marketplace, production-ready deployment capabilities, and enhanced ID verification services.
 
 ## Features
 
@@ -388,3 +388,7 @@ For technical support or questions about AEIMS licensing:
 **Built with ❤️ by After Dark Systems**
 
 *AEIMS - The premier adult entertainment platform management system*
+
+---
+
+*Last updated: October 2025 | AEIMS Platform v2.4.0*
