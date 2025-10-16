@@ -181,15 +181,15 @@ class DataLayer {
      */
     private function formatOperatorFromDB($row) {
         return [
-            'id' => $row['operator_id'],
-            'operator_id' => $row['operator_id'],
+            'id' => $row['id'],
+            'operator_id' => $row['id'], // For backward compatibility
             'username' => $row['username'],
             'email' => $row['email'],
             'password_hash' => $row['password_hash'],
             'name' => $row['display_name'] ?? $row['username'],
             'display_name' => $row['display_name'] ?? $row['username'],
-            'active' => $row['active'] ?? true,
-            'verified' => $row['verified'] ?? false,
+            'active' => $row['is_active'] ?? true,
+            'verified' => $row['is_verified'] ?? false,
             'online' => $row['online'] ?? false,
             'available' => $row['available'] ?? false,
             'created_at' => $row['created_at'] ?? null,
@@ -652,7 +652,7 @@ class DataLayer {
 
     private function saveOperatorToDB($data) {
         $existing = $this->db->fetchOne(
-            "SELECT operator_id FROM operators WHERE username = :username",
+            "SELECT id FROM operators WHERE username = :username",
             ['username' => $data['username']]
         );
 
@@ -661,26 +661,25 @@ class DataLayer {
                 'email' => $data['email'] ?? '',
                 'password_hash' => $data['password_hash'] ?? '',
                 'display_name' => $data['display_name'] ?? $data['username'],
-                'active' => $data['active'] ?? true,
-                'verified' => $data['verified'] ?? false,
+                'is_active' => $data['active'] ?? true,
+                'is_verified' => $data['verified'] ?? false,
                 'online' => $data['online'] ?? false,
-                'category' => $data['category'] ?? 'standard',
+                'status' => $data['status'] ?? 'active',
                 'metadata' => json_encode($data)
-            ], 'operator_id = :id', ['id' => $existing['operator_id']]);
+            ], 'id = :id', ['id' => $existing['id']]);
         } else {
             return $this->db->query(
-                "INSERT INTO operators (username, email, password_hash, display_name, active, verified, online, category, metadata)
-                 VALUES (:username, :email, :password_hash, :display_name, :active, :verified, :online, :category, :metadata::jsonb)",
+                "INSERT INTO operators (username, email, password_hash, display_name, is_active, is_verified, online, status)
+                 VALUES (:username, :email, :password_hash, :display_name, :is_active, :is_verified, :online, :status)",
                 [
                     'username' => $data['username'],
                     'email' => $data['email'] ?? '',
                     'password_hash' => $data['password_hash'] ?? '',
                     'display_name' => $data['display_name'] ?? $data['username'],
-                    'active' => $data['active'] ?? true,
-                    'verified' => $data['verified'] ?? false,
+                    'is_active' => $data['active'] ?? true,
+                    'is_verified' => $data['verified'] ?? false,
                     'online' => $data['online'] ?? false,
-                    'category' => $data['category'] ?? 'standard',
-                    'metadata' => json_encode($data)
+                    'status' => $data['status'] ?? 'active'
                 ]
             );
         }
@@ -692,12 +691,12 @@ class DataLayer {
         $params = [];
 
         if ($siteId) {
-            $where[] = "EXISTS (SELECT 1 FROM operator_sites WHERE operator_id = operators.operator_id AND site_id = :site_id)";
+            $where[] = "EXISTS (SELECT 1 FROM operator_sites WHERE operator_id = operators.id AND site_id = :site_id)";
             $params['site_id'] = $siteId;
         }
 
         if (isset($filters['active'])) {
-            $where[] = "active = :active";
+            $where[] = "is_active = :active";
             $params['active'] = $filters['active'];
         }
 
