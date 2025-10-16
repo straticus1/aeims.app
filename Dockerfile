@@ -7,11 +7,12 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libpq-dev \
     zip \
     unzip \
     supervisor \
     redis-server \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    && docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd \
     && pecl install redis \
     && docker-php-ext-enable redis
 
@@ -68,8 +69,12 @@ RUN mkdir -p /var/log/aeims \
     && echo "session.save_handler = redis" > /usr/local/etc/php/conf.d/sessions.ini \
     && echo "session.save_path = \"tcp://127.0.0.1:6379\"" >> /usr/local/etc/php/conf.d/sessions.ini
 
+# Copy and set up entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 # Expose port 80
 EXPOSE 80
 
-# Start supervisor (which starts apache and redis)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start with entrypoint (which runs auto-migrate then supervisor)
+CMD ["/docker-entrypoint.sh"]
