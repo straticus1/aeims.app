@@ -177,6 +177,28 @@ class DataLayer {
     }
 
     /**
+     * Get operator by ID
+     */
+    public function getOperatorById($operatorId) {
+        if ($this->useDatabase) {
+            try {
+                $result = $this->db->fetchOne(
+                    "SELECT * FROM operators WHERE id = :id",
+                    ['id' => $operatorId]
+                );
+                if ($result) {
+                    return $this->formatOperatorFromDB($result);
+                }
+            } catch (Exception $e) {
+                error_log("DataLayer: DB query failed for getOperatorById: " . $e->getMessage());
+            }
+        }
+
+        // Fallback to JSON
+        return $this->getOperatorByIdFromJSON($operatorId);
+    }
+
+    /**
      * Format operator data from database to match JSON structure
      */
     private function formatOperatorFromDB($row) {
@@ -431,6 +453,24 @@ class DataLayer {
                 $operator['operator_id'] = $operatorId;
                 return $operator;
             }
+        }
+
+        return null;
+    }
+
+    private function getOperatorByIdFromJSON($operatorId) {
+        if (!file_exists($this->operatorsFile)) {
+            return null;
+        }
+
+        $data = $this->security->safeJSONRead($this->operatorsFile);
+        $operators = $data['operators'] ?? [];
+
+        if (isset($operators[$operatorId])) {
+            $operator = $operators[$operatorId];
+            $operator['operator_id'] = $operatorId;
+            $operator['id'] = $operatorId;
+            return $operator;
         }
 
         return null;
