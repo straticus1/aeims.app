@@ -57,8 +57,8 @@ echo "Inserting/updating operators...\n";
 foreach ($operators as list($email, $name, $hash, $phone)) {
     try {
         $db->execute("
-            INSERT INTO operators (username, email, display_name, password_hash, phone, status, is_active, is_verified, created_at)
-            VALUES (:username, :email, :name, :hash, :phone, 'active', true, true, CURRENT_TIMESTAMP)
+            INSERT INTO operators (username, email, display_name, password_hash, phone, is_active, is_verified, created_at)
+            VALUES (:username, :email, :name, :hash, :phone, true, true, CURRENT_TIMESTAMP)
             ON CONFLICT (email) DO UPDATE SET
                 password_hash = EXCLUDED.password_hash,
                 display_name = EXCLUDED.display_name,
@@ -66,7 +66,6 @@ foreach ($operators as list($email, $name, $hash, $phone)) {
                 username = EXCLUDED.username,
                 is_active = true,
                 is_verified = true,
-                status = 'active',
                 updated_at = CURRENT_TIMESTAMP
         ", [
             'username' => $email,
