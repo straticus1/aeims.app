@@ -35,6 +35,12 @@ class OperatorAuth {
             $this->dataLayer = null;
         }
 
+        // Load OperatorStatsService for real statistics
+        $statsServicePath = dirname(dirname(__DIR__)) . '/includes/OperatorStatsService.php';
+        if (file_exists($statsServicePath)) {
+            require_once $statsServicePath;
+        }
+
         // Include AEIMS integration from parent directory
         $aeimsPath = dirname(dirname(__DIR__)) . '/includes/AeimsIntegration.php';
         if (file_exists($aeimsPath)) {
@@ -376,31 +382,29 @@ class OperatorAuth {
     }
     
     /**
-     * Get operator statistics
+     * Get operator statistics - Real database-backed stats
      */
     public function getOperatorStats($operatorId, $domain = null) {
-        // In production, this would query the AEIMS system
-        if ($this->aeimsIntegration && $this->aeimsIntegration->isAeimsAvailable()) {
-            // Try to get real stats from AEIMS
-            $stats = $this->aeimsIntegration->executeCommand('operator:stats', [$operatorId]);
-            
-            if (!isset($stats['error'])) {
-                return $stats;
-            }
+        try {
+            // Use OperatorStatsService for real database-backed statistics
+            $statsService = new OperatorStatsService();
+            return $statsService->getOperatorStats($operatorId, $domain);
+        } catch (Exception $e) {
+            error_log("OperatorAuth: Error getting stats: " . $e->getMessage());
+
+            // Fallback to zeros on error
+            return [
+                'calls_today' => 0,
+                'texts_today' => 0,
+                'chat_sessions' => 0,
+                'earnings_today' => 0.00,
+                'earnings_week' => 0.00,
+                'earnings_month' => 0.00,
+                'rating' => 0.0,
+                'total_customers' => 0,
+                'repeat_customers' => 0
+            ];
         }
-        
-        // Fallback to mock stats
-        return [
-            'calls_today' => rand(5, 25),
-            'texts_today' => rand(20, 100),
-            'chat_sessions' => rand(3, 15),
-            'earnings_today' => rand(50, 300),
-            'earnings_week' => rand(200, 1500),
-            'earnings_month' => rand(800, 5000),
-            'rating' => round(rand(42, 50) / 10, 1),
-            'total_customers' => rand(50, 200),
-            'repeat_customers' => rand(20, 80)
-        ];
     }
     
     /**
