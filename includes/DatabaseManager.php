@@ -167,8 +167,15 @@ class DatabaseManager {
             return $stmt;
         } catch (PDOException $e) {
             error_log("Query failed: " . $e->getMessage() . " | SQL: " . $sql);
-            throw new Exception("Database query failed");
+            throw new Exception("Database query failed: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Execute statement (alias for query, for INSERT/UPDATE/DELETE)
+     */
+    public function execute($sql, $params = []) {
+        return $this->query($sql, $params);
     }
 
     /**
