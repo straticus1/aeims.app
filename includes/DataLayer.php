@@ -248,6 +248,8 @@ class DataLayer {
                     'calls' => 0
                 ]
             ],
+            'domains' => json_decode($row['domains'] ?? '{}', true),
+            'services' => json_decode($row['services'] ?? '{}', true),
             'metadata' => json_decode($row['metadata'] ?? '{}', true)
         ];
     }
