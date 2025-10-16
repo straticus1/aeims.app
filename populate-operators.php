@@ -29,6 +29,29 @@ if (!$db->isAvailable()) {
 
 echo "✅ Connected to database\n\n";
 
+// Create operators table if it doesn't exist
+try {
+    $db->execute("
+        CREATE TABLE IF NOT EXISTS operators (
+            operator_id VARCHAR(50) PRIMARY KEY,
+            username VARCHAR(100) UNIQUE NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            name VARCHAR(255),
+            phone VARCHAR(50),
+            status VARCHAR(50) DEFAULT 'active',
+            verified BOOLEAN DEFAULT false,
+            sites JSONB DEFAULT '[]'::jsonb,
+            services JSONB DEFAULT '[]'::jsonb,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+    echo "✅ Operators table ready\n\n";
+} catch (Exception $e) {
+    die("❌ Error creating table: " . $e->getMessage() . "\n");
+}
+
 // Demo operators from JSON file
 $operators = [
     [
