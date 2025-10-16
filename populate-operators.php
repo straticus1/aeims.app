@@ -29,85 +29,89 @@ if (!$db->isAvailable()) {
 
 echo "✅ Connected to database\n\n";
 
-// Create operators table if it doesn't exist
+// Check if password_hash column exists, add if missing
 try {
-    $db->execute("
-        CREATE TABLE IF NOT EXISTS operators (
-            operator_id VARCHAR(50) PRIMARY KEY,
-            username VARCHAR(100) UNIQUE NOT NULL,
-            email VARCHAR(255) UNIQUE NOT NULL,
-            password_hash VARCHAR(255) NOT NULL,
-            name VARCHAR(255),
-            phone VARCHAR(50),
-            status VARCHAR(50) DEFAULT 'active',
-            verified BOOLEAN DEFAULT false,
-            sites JSONB DEFAULT '[]'::jsonb,
-            services JSONB DEFAULT '[]'::jsonb,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    $columnExists = $db->fetchOne("
+        SELECT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'operators'
+            AND column_name = 'password_hash'
         )
     ");
+
+    if (!$columnExists['exists']) {
+        $db->execute("ALTER TABLE operators ADD COLUMN password_hash VARCHAR(255)");
+        echo "✅ Added password_hash column\n";
+    }
+
+    // Check if phone column exists, add if missing
+    $phoneExists = $db->fetchOne("
+        SELECT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'operators'
+            AND column_name = 'phone'
+        )
+    ");
+
+    if (!$phoneExists['exists']) {
+        $db->execute("ALTER TABLE operators ADD COLUMN phone VARCHAR(50)");
+        echo "✅ Added phone column\n";
+    }
+
     echo "✅ Operators table ready\n\n";
 } catch (Exception $e) {
-    die("❌ Error creating table: " . $e->getMessage() . "\n");
+    die("❌ Error updating table: " . $e->getMessage() . "\n");
 }
 
-// Demo operators from JSON file
+// Demo operators
 $operators = [
     [
-        'operator_id' => 'op_001',
         'username' => 'sarah@example.com',
         'email' => 'sarah@example.com',
         'password_hash' => password_hash('demo123', PASSWORD_DEFAULT),
-        'name' => 'Sarah Johnson',
+        'display_name' => 'Sarah Johnson',
         'phone' => '+1-555-0101',
         'status' => 'active',
-        'verified' => true,
-        'sites' => json_encode(['beastybitches.com', 'cavern.love', 'nycflirts.com', 'nitetext.com', 'nineinchesof.com', 'holyflirts.com']),
-        'services' => json_encode(['calls', 'text', 'chat', 'video', 'cam']),
+        'is_active' => true,
+        'is_verified' => true,
     ],
     [
-        'operator_id' => 'op_002',
         'username' => 'jessica@example.com',
         'email' => 'jessica@example.com',
         'password_hash' => password_hash('demo456', PASSWORD_DEFAULT),
-        'name' => 'Jessica Williams',
+        'display_name' => 'Jessica Williams',
         'phone' => '+1-555-0102',
         'status' => 'active',
-        'verified' => true,
-        'sites' => json_encode(['nycflirts.com', 'gfecalls.com', 'latenite.love', 'fantasyflirts.live', 'holyflirts.com', 'dommecats.com']),
-        'services' => json_encode(['calls', 'text', 'chat', 'video', 'domination']),
+        'is_active' => true,
+        'is_verified' => true,
     ],
     [
-        'operator_id' => 'op_003',
         'username' => 'amanda@example.com',
         'email' => 'amanda@example.com',
         'password_hash' => password_hash('demo789', PASSWORD_DEFAULT),
-        'name' => 'Amanda Rodriguez',
+        'display_name' => 'Amanda Rodriguez',
         'phone' => '+1-555-0103',
         'status' => 'active',
-        'verified' => true,
-        'sites' => json_encode(['dommecats.com', 'fantasyflirts.live', 'nineinchesof.com', 'beastybitches.com', 'latenite.love', 'nitetext.com', 'cavern.love']),
-        'services' => json_encode(['text', 'chat', 'calls', 'domination']),
+        'is_active' => true,
+        'is_verified' => true,
     ],
 ];
 
 $sql = "
     INSERT INTO operators (
-        operator_id, username, email, password_hash, name, phone,
-        status, verified, sites, services, created_at
+        username, email, password_hash, display_name, phone,
+        status, is_active, is_verified, created_at
     ) VALUES (
-        :operator_id, :username, :email, :password_hash, :name, :phone,
-        :status, :verified, :sites::jsonb, :services::jsonb, CURRENT_TIMESTAMP
+        :username, :email, :password_hash, :display_name, :phone,
+        :status, :is_active, :is_verified, CURRENT_TIMESTAMP
     )
     ON CONFLICT (username) DO UPDATE SET
         password_hash = EXCLUDED.password_hash,
-        name = EXCLUDED.name,
+        display_name = EXCLUDED.display_name,
         phone = EXCLUDED.phone,
         status = EXCLUDED.status,
-        verified = EXCLUDED.verified,
-        sites = EXCLUDED.sites,
-        services = EXCLUDED.services,
+        is_active = EXCLUDED.is_active,
+        is_verified = EXCLUDED.is_verified,
         updated_at = CURRENT_TIMESTAMP
 ";
 
@@ -118,7 +122,7 @@ foreach ($operators as $operator) {
     try {
         // Check if exists
         $existing = $db->fetchOne(
-            "SELECT operator_id FROM operators WHERE username = :username",
+            "SELECT id FROM operators WHERE username = :username",
             ['username' => $operator['username']]
         );
 
@@ -126,10 +130,10 @@ foreach ($operators as $operator) {
 
         if ($existing) {
             $updated++;
-            echo "✅ Updated: {$operator['name']} ({$operator['email']})\n";
+            echo "✅ Updated: {$operator['display_name']} ({$operator['email']})\n";
         } else {
             $added++;
-            echo "✅ Added: {$operator['name']} ({$operator['email']})\n";
+            echo "✅ Added: {$operator['display_name']} ({$operator['email']})\n";
         }
     } catch (Exception $e) {
         echo "❌ Error for {$operator['email']}: " . $e->getMessage() . "\n";
