@@ -118,28 +118,37 @@ class OperatorAuth {
         if (!$this->isLoggedIn()) {
             return null;
         }
-        
+
         return $this->loadOperatorById($_SESSION['operator_id']);
     }
-    
+
     /**
-     * Load operator by ID
+     * Load operator by ID from database
      */
     private function loadOperatorById($operatorId) {
+        // Load from database using DataLayer
+        if ($this->dataLayer) {
+            $operator = $this->dataLayer->getOperatorById($operatorId);
+            if ($operator) {
+                return $operator;
+            }
+        }
+
+        // Fallback: try JSON file (for backwards compatibility)
         $operatorsFile = dirname(__DIR__) . '/data/operators.json';
-        
+
         if (!file_exists($operatorsFile)) {
             return null;
         }
-        
+
         $operators = json_decode(file_get_contents($operatorsFile), true) ?? [];
-        
+
         foreach ($operators as $operator) {
             if ($operator['id'] === $operatorId) {
                 return $operator;
             }
         }
-        
+
         return null;
     }
     

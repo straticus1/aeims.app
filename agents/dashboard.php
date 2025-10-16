@@ -21,6 +21,15 @@ $config = include __DIR__ . '/../config.php';
 $auth->requireLogin();
 
 $operator = $auth->getCurrentOperator();
+
+// Ensure operator data has safe defaults
+if ($operator) {
+    $operator['name'] = $operator['name'] ?? $operator['display_name'] ?? $operator['username'] ?? 'Operator';
+    $operator['email'] = $operator['email'] ?? '';
+    $operator['domains'] = $operator['domains'] ?? [];
+    $operator['services'] = $operator['services'] ?? [];
+}
+
 $operatorDomains = $auth->getOperatorDomains();
 $operatorStats = $auth->getOperatorStats($_SESSION['operator_id']);
 
@@ -571,9 +580,9 @@ $currentStatus = $operator['settings']['availability']['status'] ?? 'offline';
             <div class="sidebar-header">
                 <div class="operator-info">
                     <div class="operator-avatar">
-                        <?php echo strtoupper(substr($operator['name'], 0, 2)); ?>
+                        <?php echo strtoupper(substr($operator['name'] ?? 'OP', 0, 2)); ?>
                     </div>
-                    <div class="operator-name"><?php echo htmlspecialchars($operator['name']); ?></div>
+                    <div class="operator-name"><?php echo htmlspecialchars($operator['name'] ?? 'Operator'); ?></div>
                     <div class="operator-status">
                         <span class="status-indicator status-<?php echo $currentStatus; ?>"></span>
                         <?php echo ucfirst(str_replace('_', ' ', $currentStatus)); ?>
@@ -639,7 +648,7 @@ $currentStatus = $operator['settings']['availability']['status'] ?? 'offline';
         <main class="main-content">
             <div class="dashboard-header">
                 <div class="header-title">
-                    <h1>Welcome back, <?php echo htmlspecialchars(explode(' ', $operator['name'])[0]); ?>!</h1>
+                    <h1>Welcome back, <?php echo htmlspecialchars(explode(' ', $operator['name'] ?? 'Operator')[0]); ?>!</h1>
                     <p>Manage your presence across <?php echo count($operatorDomains); ?> domains</p>
                 </div>
 
