@@ -58,6 +58,47 @@ try {
         $count = $db->fetchOne("SELECT COUNT(*) as count FROM operators");
         echo "\nRows in table: " . $count['count'] . "\n";
 
+        // EMERGENCY: Populate operators if requested
+        if (isset($_GET['populate']) && $_GET['populate'] === 'yes') {
+            echo "\n=== POPULATING OPERATORS ===\n";
+
+            $operators = [
+                ['sarah@example.com', 'Sarah Johnson', '$2y$12$uP769e4CWOCmgm7iXSsqoeH0Vqoi5lSmsPizDmSTmxOoyyTNuykMm', '+1-555-0101'],
+                ['jessica@example.com', 'Jessica Williams', '$2y$12$Au9qvnvZrHNoa6IDYSFRlOr54j3WI9hZ264Hh9u3W5kWqZWUSGzgW', '+1-555-0102'],
+                ['amanda@example.com', 'Amanda Rodriguez', '$2y$12$PAW1bUSBAJzneXOqUYtdYelR/w.6CKPVK9ScuyrfvBR3dr3A43xMa', '+1-555-0103'],
+            ];
+
+            foreach ($operators as list($email, $name, $hash, $phone)) {
+                try {
+                    $db->execute("
+                        INSERT INTO operators (username, email, display_name, password_hash, phone, status, is_active, is_verified, created_at)
+                        VALUES (:username, :email, :name, :hash, :phone, 'active', true, true, CURRENT_TIMESTAMP)
+                        ON CONFLICT (email) DO UPDATE SET
+                            password_hash = EXCLUDED.password_hash,
+                            display_name = EXCLUDED.display_name,
+                            phone = EXCLUDED.phone,
+                            username = EXCLUDED.username,
+                            is_active = true,
+                            is_verified = true,
+                            status = 'active',
+                            updated_at = CURRENT_TIMESTAMP
+                    ", [
+                        'username' => $email,
+                        'email' => $email,
+                        'name' => $name,
+                        'hash' => $hash,
+                        'phone' => $phone,
+                    ]);
+                    echo "✅ $name ($email)\n";
+                } catch (Exception $e) {
+                    echo "❌ $name: " . $e->getMessage() . "\n";
+                }
+            }
+
+            echo "\n✅ DONE! Test at: https://aeims.app/agents/login.php\n";
+            echo "Credentials: sarah@example.com / demo123\n";
+        }
+
     } else {
         echo "❌ Operators table does NOT exist\n";
     }
