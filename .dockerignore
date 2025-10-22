@@ -1,0 +1,12 @@
+# Exclude large files and directories from Docker build
+infrastructure/terraform/
+infrastructure/build-and-deploy.sh
+infrastructure/deploy.sh
+.git/
+.github/
+*.md
+.DS_Store
+.env.local
+.vscode/
+node_modules/
+*.log

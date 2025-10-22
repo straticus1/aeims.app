@@ -108,6 +108,16 @@ switch (true) {
         }
         return;
 
+    case ($host === 'idverify.aeims.app' || $host === 'idcheck.aeims.app'):
+        // ID Verification Service
+        if (file_exists('idverify/index.php')) {
+            require_once 'idverify/index.php';
+        } else {
+            http_response_code(503);
+            echo "ID Verification Service Unavailable";
+        }
+        return;
+
     case strpos($host, 'aeims.app') !== false:
     default:
         // Default AEIMS platform
