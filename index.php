@@ -23,6 +23,11 @@ switch (true) {
         // Customer site
         require_once 'sites/nycflirts.com/index.php';
         exit();
+
+    case ($host === 'idverify.aeims.app' || $host === 'idcheck.aeims.app'):
+        // ID Verification Service
+        require_once 'idverify/index.php';
+        exit();
 }
 
 // Redirect admin.aeims.app to login page
